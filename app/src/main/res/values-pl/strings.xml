@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="btn_add">Dodaj grę</string>
+    <string name="app_name">BoardGameCollector</string>
+    <string name="txt_sort">Sortuj po</string>
+    <string name="by_date">dacie wydania</string>
+    <string name="by_name">nazwie</string>
+    <string name="by_rank">pozycji w rankingu</string>
+    <string name="sort_order">sort order</string>
+</resources>
