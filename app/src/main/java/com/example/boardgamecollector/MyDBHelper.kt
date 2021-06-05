@@ -26,6 +26,8 @@ class MyDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, nu
         db.execSQL(GamesCollector.SQL_CREATE_TABLE_GAME_ARTISTS)
         db.execSQL(GamesCollector.SQL_CREATE_TABLE_DESIGNERS)
         db.execSQL(GamesCollector.SQL_CREATE_TABLE_GAME_DESIGNERS)
+        db.execSQL(GamesCollector.SQL_CREATE_TABLE_LOCATIONS)
+        db.execSQL(GamesCollector.SQL_CREATE_TABLE_GAMES_LOCATIONS)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
@@ -33,6 +35,8 @@ class MyDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, nu
         db.execSQL(GamesCollector.SQL_DELETE_TABLE_DESIGNERS)
         db.execSQL(GamesCollector.SQL_DELETE_TABLE_GAME_ARTISTS)
         db.execSQL(GamesCollector.SQL_DELETE_TABLE_ARTISTS)
+        db.execSQL(GamesCollector.SQL_DELETE_TABLE_GAMES_LOCATIONS)
+        db.execSQL(GamesCollector.SQL_DELETE_TABLE_LOCATIONS)
         db.execSQL(GamesCollector.SQL_DELETE_TABLE_RANKS)
         db.execSQL(GamesCollector.SQL_DELETE_TABLE_GAMES)
         onCreate(db)

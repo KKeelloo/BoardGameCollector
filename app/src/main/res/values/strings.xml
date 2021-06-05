@@ -6,4 +6,34 @@
     <string name="by_rank">rank position</string>
     <string name="txt_sort">Sort by</string>
     <string name="sort_order">sort order</string>
+    <string name="game_name">Game title</string>
+    <string name="btnSearchBGG">Search BGG</string>
+    <string name="release_year">Release year</string>
+    <string name="original_name">Original title</string>
+    <string name="description">Description</string>
+    <string name="ordered">Ordered</string>
+    <string name="received">Received</string>
+    <string name="paid">Paid</string>
+    <string name="suggested_price">Suggested price</string>
+    <string name="ean_code">EAN code</string>
+    <string name="bgg_id" translatable="false">BGG id</string>
+    <string name="production_code">Production code</string>
+    <string name="rank">Rank</string>
+    <string name="comment">Comment</string>
+    <string name="url_to_image">URL to image</string>
+    <string name="or_load_from_files">Or load from files</string>
+    <string name="load_image_from_url">Load image from URL</string>
+    <string name="loaded_image_desc">Loaded image</string>
+    <string name="confirm">Confirm</string>
+    <string name="full">Full version</string>
+    <string name="dlc">DLC</string>
+    <string name="playable_dlc">Playable DLC</string>
+    <string name="location_comment">Comment to location</string>
+    <string name="location">Location</string>
+    <string name="group_artist">Artists</string>
+    <string name="group_designer">Designers</string>
+    <string name="add">Add</string>
+    <string name="id">id</string>
+    <string name="title_add_artist">Add artist</string>
+    <string name="title_add_designer">Add designer</string>
 </resources>

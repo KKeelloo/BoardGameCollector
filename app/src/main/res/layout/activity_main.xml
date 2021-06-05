@@ -15,7 +15,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <Button
-            android:id="@+id/button5"
+            android:id="@+id/btnAddGame"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btn_add"
@@ -30,15 +30,15 @@
             android:id="@+id/spinnerSort"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@+id/button5"
-            app:layout_constraintEnd_toStartOf="@+id/imageView"
+            app:layout_constraintBottom_toTopOf="@+id/btnAddGame"
+            app:layout_constraintEnd_toStartOf="@+id/imgOrd"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/textView"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.6" />
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/imgOrd"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="@+id/spinnerSort"

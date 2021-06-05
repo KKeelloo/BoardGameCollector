@@ -8,7 +8,7 @@ object GamesCollector {
         const val GAME_ID = "game_id"
         const val COLUMN_TITLE = "title"
         const val COLUMN_TITLE_ORIGINAL = "original_title"
-        const val COLUMN_RELEASE_DATE = "release_date"
+        const val COLUMN_RELEASE_YEAR = "release_date"
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_ORDER_DATE = "order_date"
         const val COLUMN_DELIVERY_DATE = "deliver_date"
@@ -21,6 +21,7 @@ object GamesCollector {
         const val COLUMN_TYPE = "type"
         const val COLUMN_COMMENT = "comment"
         const val COLUMN_IMG = "img"
+        const val COLUMN_HAS_IMG = "has_img"
     }
     
     const val SQL_CREATE_TABLE_GAMES =
@@ -28,7 +29,7 @@ object GamesCollector {
                     "${GamesEntry.GAME_ID} INTEGER PRIMARY KEY," +
                     "${GamesEntry.COLUMN_TITLE} TEXT," +
                     "${GamesEntry.COLUMN_TITLE_ORIGINAL} TEXT," +
-                    "${GamesEntry.COLUMN_RELEASE_DATE} DATE," +
+                    "${GamesEntry.COLUMN_RELEASE_YEAR} INTEGER," +
                     "${GamesEntry.COLUMN_DESCRIPTION} TEXT," +
                     "${GamesEntry.COLUMN_ORDER_DATE} DATE," +
                     "${GamesEntry.COLUMN_DELIVERY_DATE} DATE," +
@@ -40,12 +41,13 @@ object GamesCollector {
                     "${GamesEntry.COLUMN_CURRENT_RANK} INTEGER," +
                     "${GamesEntry.COLUMN_TYPE} INTEGER," +
                     "${GamesEntry.COLUMN_COMMENT} TEXT," +
-                    "${GamesEntry.COLUMN_IMG} TEXT)"
+                    "${GamesEntry.COLUMN_HAS_IMG} INTEGER," +
+                    "${GamesEntry.COLUMN_IMG} BLOB)"
 
     const val SQL_DELETE_TABLE_GAMES =
             "DROP TABLE IF EXISTS ${GamesEntry.TABLE_NAME}"
 
-    object RanksEntry{
+    object RanksEntry: BaseColumns{
         const val TABLE_NAME = "ranks"
         const val COLUMN_RANK = "rank"
         const val COLUMN_DATE = "date"
@@ -131,4 +133,39 @@ object GamesCollector {
 
     const val SQL_DELETE_TABLE_GAME_ARTISTS =
             "DROP TABLE IF EXISTS ${GameArtistsEntry.TABLE_NAME}"
+
+    object LocationEntry : BaseColumns{
+        const val TABLE_NAME = "locations"
+        const val COLUMN_LOCATION = "location"
+    }
+
+    const val SQL_CREATE_TABLE_LOCATIONS =
+            "CREATE TABLE ${LocationEntry.TABLE_NAME} (" +
+                    "${BaseColumns._ID} INTEGER PRIMARY KEY," +
+                    "${LocationEntry.COLUMN_LOCATION} TEXT)"
+
+    const val SQL_DELETE_TABLE_LOCATIONS =
+            "DROP TABLE IF EXISTS ${LocationEntry.TABLE_NAME}"
+
+    object GamesLocationsEntry : BaseColumns{
+        const val TABLE_NAME = "games_locations"
+        const val COLUMN_COMMENT = "comment"
+        const val COLUMN_GAME_ID = GamesEntry.GAME_ID
+        const val COLUMN_LOCATION_ID = BaseColumns._ID
+    }
+
+    const val SQL_CREATE_TABLE_GAMES_LOCATIONS =
+            "CREATE TABLE ${GamesLocationsEntry.TABLE_NAME} (" +
+                    "${GamesLocationsEntry.COLUMN_GAME_ID} INTEGER," +
+                    "${GamesLocationsEntry.COLUMN_LOCATION_ID} INTEGER," +
+                    "${GamesLocationsEntry.COLUMN_COMMENT} TEXT," +
+                    "FOREIGN KEY(${GamesLocationsEntry.COLUMN_GAME_ID}) REFERENCES " +
+                            "${GamesEntry.TABLE_NAME}(${GamesEntry.GAME_ID})" +
+                            " ON UPDATE CASCADE ON DELETE CASCADE," +
+                    "FOREIGN KEY(${GamesLocationsEntry.COLUMN_LOCATION_ID} REFERENCES " +
+                            "${LocationEntry.TABLE_NAME}(${BaseColumns._ID})" +
+                            " ON UPDATE CASCADE ON DELETE CASCADE)"
+
+    const val SQL_DELETE_TABLE_GAMES_LOCATIONS =
+            "DROP TABLE IF EXISTS ${GamesLocationsEntry.TABLE_NAME}"
 }

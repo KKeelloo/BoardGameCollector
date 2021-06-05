@@ -5,4 +5,9 @@
         <item>@string/by_rank</item>
         <item>@string/by_date</item>
     </string-array>
+    <string-array name="type_options" translatable="false">
+        <item>@string/full</item>
+        <item>@string/dlc</item>
+        <item>@string/playable_dlc</item>
+    </string-array>
 </resources>
