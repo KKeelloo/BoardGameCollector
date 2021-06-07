@@ -6,9 +6,9 @@ object GamesCollector {
     object GamesEntry : BaseColumns {
         const val TABLE_NAME = "games"
         const val GAME_ID = "game_id"
-        const val COLUMN_TITLE = "title"
+        const val COLUMN_TITLE = "game_title"
         const val COLUMN_TITLE_ORIGINAL = "original_title"
-        const val COLUMN_RELEASE_YEAR = "release_date"
+        const val COLUMN_RELEASE_YEAR = "release_year"
         const val COLUMN_DESCRIPTION = "description"
         const val COLUMN_ORDER_DATE = "order_date"
         const val COLUMN_DELIVERY_DATE = "deliver_date"
@@ -18,31 +18,31 @@ object GamesCollector {
         const val COLUMN_BGG_ID = "bgg_id"
         const val COLUMN_PRODUCTION_CODE = "production_code"
         const val COLUMN_CURRENT_RANK =  "current_rank"
-        const val COLUMN_TYPE = "type"
+        const val COLUMN_TYPE = "typ"
         const val COLUMN_COMMENT = "comment"
         const val COLUMN_IMG = "img"
         const val COLUMN_HAS_IMG = "has_img"
     }
     
     const val SQL_CREATE_TABLE_GAMES =
-            "CREATE_TABLE ${GamesEntry.TABLE_NAME} (" +
+            "CREATE TABLE ${GamesEntry.TABLE_NAME} (" +
                     "${GamesEntry.GAME_ID} INTEGER PRIMARY KEY," +
-                    "${GamesEntry.COLUMN_TITLE} TEXT," +
-                    "${GamesEntry.COLUMN_TITLE_ORIGINAL} TEXT," +
-                    "${GamesEntry.COLUMN_RELEASE_YEAR} INTEGER," +
-                    "${GamesEntry.COLUMN_DESCRIPTION} TEXT," +
-                    "${GamesEntry.COLUMN_ORDER_DATE} DATE," +
-                    "${GamesEntry.COLUMN_DELIVERY_DATE} DATE," +
-                    "${GamesEntry.COLUMN_PAID_PRICE} TEXT," +
-                    "${GamesEntry.COLUMN_SUGGESTED_PRICE} TEXT," +
-                    "${GamesEntry.COLUMN_EAN_CODE} INTEGER," +
-                    "${GamesEntry.COLUMN_BGG_ID} INTEGER," +
-                    "${GamesEntry.COLUMN_PRODUCTION_CODE} TEXT," +
-                    "${GamesEntry.COLUMN_CURRENT_RANK} INTEGER," +
-                    "${GamesEntry.COLUMN_TYPE} INTEGER," +
-                    "${GamesEntry.COLUMN_COMMENT} TEXT," +
-                    "${GamesEntry.COLUMN_HAS_IMG} INTEGER," +
-                    "${GamesEntry.COLUMN_IMG} BLOB)"
+                    " ${GamesEntry.COLUMN_TITLE} TEXT," +
+                    " ${GamesEntry.COLUMN_TITLE_ORIGINAL} TEXT," +
+                    " ${GamesEntry.COLUMN_RELEASE_YEAR} INTEGER," +
+                    " ${GamesEntry.COLUMN_DESCRIPTION} TEXT," +
+                    " ${GamesEntry.COLUMN_ORDER_DATE} DATE," +
+                    " ${GamesEntry.COLUMN_DELIVERY_DATE} DATE," +
+                    " ${GamesEntry.COLUMN_PAID_PRICE} TEXT," +
+                    " ${GamesEntry.COLUMN_SUGGESTED_PRICE} TEXT," +
+                    " ${GamesEntry.COLUMN_EAN_CODE} INTEGER," +
+                    " ${GamesEntry.COLUMN_BGG_ID} INTEGER," +
+                    " ${GamesEntry.COLUMN_PRODUCTION_CODE} TEXT," +
+                    " ${GamesEntry.COLUMN_CURRENT_RANK} INTEGER," +
+                    " ${GamesEntry.COLUMN_TYPE} INTEGER," +
+                    " ${GamesEntry.COLUMN_COMMENT} TEXT," +
+                    " ${GamesEntry.COLUMN_HAS_IMG} INTEGER," +
+                    " ${GamesEntry.COLUMN_IMG} BLOB)"
 
     const val SQL_DELETE_TABLE_GAMES =
             "DROP TABLE IF EXISTS ${GamesEntry.TABLE_NAME}"
@@ -61,7 +61,7 @@ object GamesCollector {
                     "${RanksEntry.COLUMN_GAME_ID} INTEGER," +
                     "FOREIGN KEY(${RanksEntry.COLUMN_GAME_ID}) " +
                             "REFERENCES ${GamesEntry.TABLE_NAME}(${GamesEntry.GAME_ID}) " +
-                            "ON UPDATE CASCADE ON DELETE CASCADE)"
+                            "ON DELETE CASCADE ON UPDATE CASCADE)"
 
     const val SQL_DELETE_TABLE_RANKS =
             "DROP TABLE IF EXISTS ${RanksEntry.TABLE_NAME}"
@@ -136,12 +136,13 @@ object GamesCollector {
 
     object LocationEntry : BaseColumns{
         const val TABLE_NAME = "locations"
+        const val COLUMN_LOCATION_ID = "location_id"
         const val COLUMN_LOCATION = "location"
     }
 
     const val SQL_CREATE_TABLE_LOCATIONS =
             "CREATE TABLE ${LocationEntry.TABLE_NAME} (" +
-                    "${BaseColumns._ID} INTEGER PRIMARY KEY," +
+                    "${LocationEntry.COLUMN_LOCATION_ID} INTEGER PRIMARY KEY," +
                     "${LocationEntry.COLUMN_LOCATION} TEXT)"
 
     const val SQL_DELETE_TABLE_LOCATIONS =
@@ -151,7 +152,7 @@ object GamesCollector {
         const val TABLE_NAME = "games_locations"
         const val COLUMN_COMMENT = "comment"
         const val COLUMN_GAME_ID = GamesEntry.GAME_ID
-        const val COLUMN_LOCATION_ID = BaseColumns._ID
+        const val COLUMN_LOCATION_ID = LocationEntry.COLUMN_LOCATION_ID
     }
 
     const val SQL_CREATE_TABLE_GAMES_LOCATIONS =
@@ -162,8 +163,8 @@ object GamesCollector {
                     "FOREIGN KEY(${GamesLocationsEntry.COLUMN_GAME_ID}) REFERENCES " +
                             "${GamesEntry.TABLE_NAME}(${GamesEntry.GAME_ID})" +
                             " ON UPDATE CASCADE ON DELETE CASCADE," +
-                    "FOREIGN KEY(${GamesLocationsEntry.COLUMN_LOCATION_ID} REFERENCES " +
-                            "${LocationEntry.TABLE_NAME}(${BaseColumns._ID})" +
+                    "FOREIGN KEY(${GamesLocationsEntry.COLUMN_LOCATION_ID}) REFERENCES " +
+                            "${LocationEntry.TABLE_NAME}(${LocationEntry.COLUMN_LOCATION_ID})" +
                             " ON UPDATE CASCADE ON DELETE CASCADE)"
 
     const val SQL_DELETE_TABLE_GAMES_LOCATIONS =

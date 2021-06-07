@@ -5,10 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.BaseColumns
 import android.view.LayoutInflater
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.AutoCompleteTextView
-import android.widget.Spinner
+import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -22,34 +19,38 @@ class AddGame : AppCompatActivity() {
     companion object{
         private class AddGameViewModel(private val dbHelper: MyDBHelper): ViewModel() {
             private val _artistsAll: MutableLiveData<ArrayList<Person>> by lazy {
-                MutableLiveData<ArrayList<Person>>().also { it.value = ArrayList() }
+                MutableLiveData<ArrayList<Person>>().also { it.postValue(ArrayList())}
             }
             val artistsAll: LiveData<ArrayList<Person>> get() = _artistsAll
 
             private val _artistsChosen: MutableLiveData<ArrayList<Person>> by lazy {
-                MutableLiveData<ArrayList<Person>>().also { it.value = ArrayList() }
+                MutableLiveData<ArrayList<Person>>().also { it.postValue(ArrayList())}
             }
             val artistsChosen: LiveData<ArrayList<Person>> get() = _artistsChosen
 
             private val _designersAll: MutableLiveData<ArrayList<Person>> by lazy {
-                MutableLiveData<ArrayList<Person>>().also { it.value = ArrayList() }
+                MutableLiveData<ArrayList<Person>>().also { it.postValue(ArrayList())}
             }
             val designersAll: LiveData<ArrayList<Person>> get() = _designersAll
 
             private val _designersChosen: MutableLiveData<ArrayList<Person>> by lazy {
-                MutableLiveData<ArrayList<Person>>().also { it.value = ArrayList() }
+                MutableLiveData<ArrayList<Person>>().also { it.postValue(ArrayList()) }
             }
             val designersChosen: LiveData<ArrayList<Person>> get() = _designersChosen
 
             private val _locations: MutableLiveData<ArrayList<Location>> by lazy {
-                MutableLiveData<ArrayList<Location>>().also { it.value = ArrayList() }
+                MutableLiveData<ArrayList<Location>>().also { it.postValue(ArrayList())}
             }
             val locations: LiveData<ArrayList<Location>> get() = _locations
 
+            var basicGameData: BasicGameData? = null
+            var gameData: GameData? = null
 
             fun choseArtist(person: Person){
-                if(_artistsChosen.value?.contains(person) == false)
+                if(_artistsChosen.value?.contains(person) == false) {
                     _artistsChosen.value?.add(person)
+                    _artistsChosen.postValue(_artistsChosen.value)
+                }
             }
 
             fun removeArtist(idx: Int){
@@ -89,8 +90,10 @@ class AddGame : AppCompatActivity() {
             }
 
             fun choseDesigner(person: Person){
-                if(_designersChosen.value?.contains(person) == false)
+                if(_designersChosen.value?.contains(person) == false) {
                     _designersChosen.value?.add(person)
+                    _designersChosen.postValue(_designersChosen.value)
+                }
             }
 
             fun removeDesigner(idx: Int){
@@ -128,9 +131,9 @@ class AddGame : AppCompatActivity() {
 
             private fun loadLocations(){
                 val db = dbHelper.readableDatabase
-                val projection = arrayOf(BaseColumns._ID, GamesCollector.LocationEntry.COLUMN_LOCATION)
+                val projection = arrayOf(GamesCollector.LocationEntry.COLUMN_LOCATION_ID, GamesCollector.LocationEntry.COLUMN_LOCATION)
                 val cursor = db.query(
-                        GamesCollector.DesignersEntry.TABLE_NAME,
+                        GamesCollector.LocationEntry.TABLE_NAME,
                         projection,
                         null,
                         null,
@@ -143,7 +146,7 @@ class AddGame : AppCompatActivity() {
 
                 with(cursor){
                     while (moveToNext()){
-                        val person = Location(getInt(getColumnIndex(BaseColumns._ID)), getString(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION)))
+                        val person = Location(getInt(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION_ID)), getString(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION)))
                         arr.add(person)
                     }
                 }
@@ -160,10 +163,16 @@ class AddGame : AppCompatActivity() {
                     _loading.postValue(false)
                 }
             }
+
+            fun clearOnSearch(){
+                _artistsChosen.postValue(ArrayList())
+                _designersChosen.postValue(ArrayList())
+            }
         }
     }
     private lateinit var binding: ActivityAddGameBinding
     private lateinit var viewModel: AddGameViewModel
+    private lateinit var xmlParser: XMLParser
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -205,6 +214,8 @@ class AddGame : AppCompatActivity() {
                 ArrayAdapter(this, android.R.layout.simple_list_item_1, artists).also { adapter ->
                     binding.ArtistsList.adapter = adapter
                 }
+
+                setListViewHeightBasedOnChildren(binding.ArtistsList)
             }
         }
 
@@ -217,6 +228,8 @@ class AddGame : AppCompatActivity() {
                 ArrayAdapter(this, android.R.layout.simple_list_item_1, designers).also { adapter ->
                     binding.DesignersList.adapter = adapter
                 }
+
+                setListViewHeightBasedOnChildren(binding.DesignersList)
             }
         }
 
@@ -272,6 +285,8 @@ class AddGame : AppCompatActivity() {
             builder.setNegativeButton(android.R.string.cancel) { dialogInterface: DialogInterface, _ ->
                 dialogInterface.cancel()
             }
+
+            builder.create().show()
         }
 
         binding.btnAddDesigner.setOnClickListener {
@@ -314,10 +329,121 @@ class AddGame : AppCompatActivity() {
             builder.setNegativeButton(android.R.string.cancel) { dialogInterface: DialogInterface, _ ->
                 dialogInterface.cancel()
             }
+
+            builder.create().show()
         }
 
         viewModel.loadStartingData()
 
+        xmlParser = XMLParser(this.applicationInfo.dataDir)
 
+        xmlParser.processingForName.observe(this){ value ->
+            value.let{
+                if(it){
+                    loadingDialog.setInfo("${getText(R.string.processing_data)}")
+                }else{
+                    if (xmlParser.loaded.value == 200){
+                        loadingDialog.dissmisDialog()
+                        val builder = AlertDialog.Builder(this)
+                        builder.setTitle(getString(R.string.choose_game))
+
+                        val inflated = LayoutInflater.from(this).inflate(R.layout.choose_game, null,false)
+                        val listView: ListView = inflated.findViewById(R.id.lvGamesToChoose)
+                        val arr = xmlParser.gamesBasic.value!!
+                        ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, Array(arr.size){ i ->
+                            "${getText(R.string.game_id)} ${arr[i].id}\n" +
+                                    "${getText(R.string.game_name)} ${arr[i].name}\n" +
+                                    "${getText(R.string.release_year)}: ${arr[i].yearPublished}"
+                        }).also { adapter ->
+                            listView.adapter = adapter
+                        }
+
+                        builder.setView(inflated)
+                        val d = builder.create()
+
+                        listView.setOnItemClickListener { _, _, position, _ ->
+                            xmlParser.getGameByID(arr[position].id)
+                            viewModel.basicGameData = arr[position]
+                            d.dismiss()
+                        }
+                        d.show()
+                    }
+                    else if(xmlParser.loaded.value == -2){
+
+                    }
+                    else{
+                        loadingDialog.dissmisDialog()
+                        val builder = AlertDialog.Builder(this)
+
+                        val out = TextView(this)
+                        out.text = getText(R.string.error_occ)
+
+                        builder.setView(out)
+                        builder.setNegativeButton("Cancel"){ dialogInterface: DialogInterface, _ ->
+                            dialogInterface.cancel()
+                        }
+
+                        builder.show()
+                    }
+                }
+            }
+        }
+
+        xmlParser.processingForId.observe(this){value ->
+            value.let{
+                if(it){
+                    loadingDialog.setInfo("${getText(R.string.processing_data)}")
+                }else{
+                    if (xmlParser.loaded.value == 200){
+                        loadingDialog.dissmisDialog()
+                        viewModel.gameData = xmlParser.game.value!!
+                        binding.txtInGameTitle.setText(viewModel.basicGameData!!.name)
+                        binding.txtInOriginalTitle.setText(viewModel.gameData!!.originalTitle)
+                        binding.txtInReleaseYear.setText(viewModel.gameData!!.yearPublished.toString())
+                        for (i in viewModel.gameData!!.artists!!.indices){
+                            viewModel.choseArtist(viewModel.gameData!!.artists!![i])
+                        }
+                        for (i in viewModel.gameData!!.designers!!.indices){
+                            viewModel.choseDesigner(viewModel.gameData!!.designers!![i])
+                        }
+                        binding.txtInDescription.setText(viewModel.gameData!!.description)
+                        binding.txtInBGGId.setText(viewModel.gameData!!.bggId.toString())
+                        binding.txtInRank.setText(viewModel.gameData!!.ranks!![0].rank.toString())
+                        if(viewModel.gameData!!.img!=null) {
+                            binding.imgLoadedImage.setImageBitmap(viewModel.gameData!!.img)
+                        }
+                    }
+                    else if(xmlParser.loaded.value == -2){
+
+                    }
+                    else{
+                        loadingDialog.dissmisDialog()
+                        val builder = AlertDialog.Builder(this)
+
+                        val out = TextView(this)
+                        out.text = getText(R.string.error_occ)
+
+                        builder.setView(out)
+                        builder.setNegativeButton("Cancel"){ dialogInterface: DialogInterface, _ ->
+                            dialogInterface.cancel()
+                        }
+                        builder.show()
+                    }
+                }
+            }
+        }
+
+        xmlParser.retryingIn.observe(this){ value ->
+            if(xmlParser.processingForName.value == false && xmlParser.processingForId.value == false)
+                loadingDialog.setInfo("${getText(R.string.waiting_for_data)}\n${getText(R.string.retrying_in)} ${value}s")
+        }
+
+
+        binding.btnSearchBGG.setOnClickListener {
+            xmlParser.getGamesByName(binding.txtInGameTitle.text.toString())
+            viewModel.clearOnSearch()
+            loadingDialog.startLoadingDialog()
+            loadingDialog.setInfo("${getText(R.string.loading_data)}")
+        }
     }
 }

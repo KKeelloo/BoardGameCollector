@@ -36,4 +36,11 @@
     <string name="id">id</string>
     <string name="title_add_artist">Add artist</string>
     <string name="title_add_designer">Add designer</string>
+    <string name="loading_data">Loading data</string>
+    <string name="processing_data">Processing data</string>
+    <string name="waiting_for_data">Waiting for data</string>
+    <string name="retrying_in">"Retrying in: "</string>
+    <string name="choose_game">Choose a game</string>
+    <string name="game_id">Game id:</string>
+    <string name="error_occ">Error ocured try again later</string>
 </resources>
