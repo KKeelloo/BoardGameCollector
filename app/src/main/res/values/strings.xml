@@ -43,4 +43,6 @@
     <string name="choose_game">Choose a game</string>
     <string name="game_id">Game id:</string>
     <string name="error_occ">Error ocured try again later</string>
+    <string name="title">tytuł</string>
+    <string name="name">name</string>
 </resources>
