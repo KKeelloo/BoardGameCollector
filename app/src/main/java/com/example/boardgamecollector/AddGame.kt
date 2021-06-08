@@ -4,21 +4,21 @@ import android.app.Activity
 import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.BaseColumns
 import android.util.Log
 import android.view.LayoutInflater
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.get
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.boardgamecollector.databinding.ActivityAddGameBinding
+import com.google.android.material.textfield.TextInputEditText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.lang.Exception
@@ -71,10 +71,12 @@ class AddGame : AppCompatActivity() {
 
             fun removeArtist(idx: Int){
                 _artistsChosen.value?.removeAt(idx)
+                _artistsChosen.postValue(_artistsChosen.value)
             }
 
             fun changeArtist(idx: Int, person: Person){
                 _artistsChosen.value?.set(idx, person)
+                _artistsChosen.postValue(_artistsChosen.value)
             }
 
             private val _loading: MutableLiveData<Boolean> = MutableLiveData()
@@ -102,7 +104,7 @@ class AddGame : AppCompatActivity() {
 
                 with(cursor){
                     while (moveToNext()){
-                        val person = Person(getInt(getColumnIndex(GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID)), getString(getColumnIndex(GamesCollector.ArtistsEntry.COLUMN_ARTIST_NAME)))
+                        val person = Person(getLong(getColumnIndex(GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID)), getString(getColumnIndex(GamesCollector.ArtistsEntry.COLUMN_ARTIST_NAME)))
                         arr.add(person)
                     }
                 }
@@ -119,10 +121,12 @@ class AddGame : AppCompatActivity() {
 
             fun removeDesigner(idx: Int){
                 _designersChosen.value?.removeAt(idx)
+                _designersChosen.postValue(_designersChosen.value)
             }
 
             fun changeDesigner(idx: Int, person: Person){
                 _designersChosen.value?.set(idx, person)
+                _designersChosen.postValue(_designersChosen.value)
             }
 
             private fun loadDesigners(){
@@ -141,7 +145,7 @@ class AddGame : AppCompatActivity() {
 
                 with(cursor){
                     while (moveToNext()){
-                        val person = Person(getInt(getColumnIndex(GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID)), getString(getColumnIndex(GamesCollector.DesignersEntry.COLUMN_DESIGNER_NAME)))
+                        val person = Person(getLong(getColumnIndex(GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID)), getString(getColumnIndex(GamesCollector.DesignersEntry.COLUMN_DESIGNER_NAME)))
                         arr.add(person)
                     }
                 }
@@ -166,7 +170,7 @@ class AddGame : AppCompatActivity() {
 
                 with(cursor){
                     while (moveToNext()){
-                        val person = Location(getInt(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION_ID)), getString(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION)))
+                        val person = Location(getLong(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION_ID)), getString(getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION)))
                         arr.add(person)
                     }
                 }
@@ -198,17 +202,19 @@ class AddGame : AppCompatActivity() {
                     if(bitmap!=null) {
                         _img.postValue(bitmap)
                         _hasImg.postValue(true)
+                    }else{
+                        _hasImg.postValue(false)
                     }
                 }
             }
 
-            fun getLocationId(name: String): Int{
+            fun getLocationId(name: String): Long{
                 for(i in 0 until locations.value!!.size){
                     if(locations.value!![i].name == name){
                         return locations.value!![i].id
                     }
                 }
-                return locations.value!!.size
+                return locations.value!!.size.toLong()
             }
 
             fun setBitmap(bitmap: Bitmap){
@@ -220,12 +226,34 @@ class AddGame : AppCompatActivity() {
                 viewModelScope.launch(Dispatchers.IO) {
                     _saving.postValue(1)
                     try{
-
                         val db = dbHelper.writableDatabase
-                        rowId.postValue(putGame(db, gameData))
+                        val gameId = putGame(db, gameData)
+                        rowId.postValue(gameId)
 
+                        val artistsC = artistsChosen.value?: ArrayList()
+                        val artistsA = artistsAll.value?: ArrayList()
+                        for(i in 0 until artistsC.size){
+                            if(!artistsA.contains(artistsC[i]))
+                                putArtist(db, artistsC[i])
+                            putGameArtist(db, gameId, artistsC[i].id)
+                        }
 
+                        val designersC = designersChosen.value?: ArrayList()
+                        val designersA = designersAll.value?: ArrayList()
+                        for(i in 0 until designersC.size){
+                            if(!designersA.contains(designersC[i]))
+                                putDesigner(db, designersC[i])
+                            putGameDesigner(db, gameId, designersC[i].id)
+                        }
 
+                        val location = gameData.location!!
+                        val locationsA = locations.value?: ArrayList()
+
+                        if(!locationsA.contains(location))
+                            putLocation(db, location)
+
+                        putGameLocation(db, gameId, location.id, gameData.locationComment?:"")
+                        putRank(db, gameData.ranks?.get(0)?: Rank(), gameId)
                         _saving.postValue(0)
                     }catch (e: Exception){
                         Log.i("addGame", e.stackTraceToString())
@@ -362,10 +390,112 @@ class AddGame : AppCompatActivity() {
 
             builder.setPositiveButton(android.R.string.ok) { dialogInterface: DialogInterface, _ ->
                 dialogInterface.dismiss()
-                viewModel.choseArtist(Person(inID.text.toString().toInt(), inName.text.toString()))
+                viewModel.choseArtist(Person(inID.text.toString().toLong(), inName.text.toString()))
             }
 
             builder.setNegativeButton(android.R.string.cancel) { dialogInterface: DialogInterface, _ ->
+                dialogInterface.cancel()
+            }
+
+            builder.create().show()
+        }
+
+        binding.ArtistsList.setOnItemClickListener { _, _, position, _ ->
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(getString(R.string.title_change_artist))
+
+            val inflated = LayoutInflater.from(this).inflate(R.layout.person_dialog, null,false)
+            val inID: AutoCompleteTextView = inflated.findViewById(R.id.inID)
+            val inName: AutoCompleteTextView = inflated.findViewById(R.id.inName)
+
+            val artists: Array<Person> = viewModel.artistsAll.value!!.toTypedArray()
+
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Array(artists.size){
+                artists[it].id
+            }).also {
+                inID.setAdapter(it)
+            }
+
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Array(artists.size){
+                artists[it].name
+            }).also {
+                inName.setAdapter(it)
+            }
+
+            inID.onItemClickListener = AdapterView.OnItemClickListener{ _, _, position, _ ->
+                inName.setSelection(position)
+            }
+
+            inID.setText(viewModel.artistsChosen.value?.get(position)?.id.toString())
+            if(inID.text.toString() == "null" ){
+                inID.setText("")
+            }
+
+            inName.onItemClickListener = AdapterView.OnItemClickListener{ _, _, position, _ ->
+                inID.setSelection(position)
+            }
+
+            inName.setText(viewModel.artistsChosen.value?.get(position)?.name ?: "")
+
+            builder.setView(inflated)
+
+            builder.setPositiveButton(android.R.string.ok) { dialogInterface: DialogInterface, _ ->
+                viewModel.changeArtist(position, Person(inID.text.toString().toLong(), inName.text.toString()))
+                dialogInterface.dismiss()
+            }
+
+            builder.setNegativeButton(R.string.remove) { dialogInterface: DialogInterface, _ ->
+                viewModel.removeArtist(position)
+                dialogInterface.cancel()
+            }
+
+            builder.create().show()
+        }
+
+        binding.DesignersList.setOnItemClickListener { _, _, position, _ ->
+            val builder = AlertDialog.Builder(this)
+            builder.setTitle(getString(R.string.title_change_designer))
+
+            val inflated = LayoutInflater.from(this).inflate(R.layout.person_dialog, null,false)
+            val inID: AutoCompleteTextView = inflated.findViewById(R.id.inID)
+            val inName: AutoCompleteTextView = inflated.findViewById(R.id.inName)
+
+            val designer: Array<Person> = viewModel.designersAll.value!!.toTypedArray()
+
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Array(designer.size){
+                designer[it].id
+            }).also {
+                inID.setAdapter(it)
+            }
+
+            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Array(designer.size){
+                designer[it].name
+            }).also {
+                inName.setAdapter(it)
+            }
+
+            inID.onItemClickListener = AdapterView.OnItemClickListener{ _, _, position, _ ->
+                inName.setSelection(position)
+            }
+            inID.setText(viewModel.designersChosen.value?.get(position)?.id.toString())
+            if(inID.text.toString() == "null" ){
+                inID.setText("")
+            }
+
+            inName.onItemClickListener = AdapterView.OnItemClickListener{ _, _, position, _ ->
+                inID.setSelection(position)
+            }
+            inName.setText(viewModel.designersChosen.value?.get(position)?.name ?: "")
+
+            builder.setView(inflated)
+
+            builder.setPositiveButton(android.R.string.ok) { dialogInterface: DialogInterface, _ ->
+                viewModel.changeDesigner(position ,Person(inID.text.toString().toLong(), inName.text.toString()))
+                dialogInterface.dismiss()
+            }
+
+            builder.setNegativeButton(R.string.remove) { dialogInterface: DialogInterface, _ ->
+                viewModel.removeDesigner(position)
                 dialogInterface.cancel()
             }
 
@@ -406,7 +536,7 @@ class AddGame : AppCompatActivity() {
 
             builder.setPositiveButton(android.R.string.ok) { dialogInterface: DialogInterface, _ ->
                 dialogInterface.dismiss()
-                viewModel.choseDesigner(Person(inID.text.toString().toInt(), inName.text.toString()))
+                viewModel.choseDesigner(Person(inID.text.toString().toLong(), inName.text.toString()))
             }
 
             builder.setNegativeButton(android.R.string.cancel) { dialogInterface: DialogInterface, _ ->
@@ -542,32 +672,32 @@ class AddGame : AppCompatActivity() {
 
         binding.btnConfirm.setOnClickListener {
             viewModel.addGame(GameData(title = binding.txtInGameTitle.text.toString(),
-                    originalTitle = binding.txtInOriginalTitle.text.toString(),
-                    yearPublished = binding.txtInReleaseYear.text.toString().toInt(),
-                    description = binding.txtInDescription.text.toString(),
-                    ordered = Calendar.getInstance().also { it.set(binding.dpOrdered.year, binding.dpOrdered.month, binding.dpOrdered.dayOfMonth) }.time ,
-                    delivered = Calendar.getInstance().also { it.set(binding.dpReceived.year, binding.dpReceived.month, binding.dpReceived.dayOfMonth) }.time,
-                    paidPrice = binding.txtInPaid.text.toString(),
-                    suggestedPrice = binding.txtInSuggestedPrice.text.toString(),
-                    eanCode = binding.txtInEAN.text.toString().toInt(),
-                    bggId = binding.txtInBGGId.text.toString().toInt(),
-                    productionCode = binding.txtInProductionCode.text.toString(),
-                    currentRank = binding.txtInRank.text.toString().toInt(),
-                    type = binding.spinnerType.selectedItemPosition,
-                    comment = binding.txtInComment.text.toString(),
-                    img = viewModel.img.value,
-                    hasImg = viewModel.hasImg.value,
-                    artists = Array(viewModel.artistsChosen.value!!.size){
-                                                                         viewModel.artistsChosen.value!![it]
-                    },
-                    designers = Array(viewModel.designersChosen.value!!.size){
-                                                                         viewModel.designersChosen.value!![it]
-                    },
-                    ranks = Array(1){
-                                    Rank(binding.txtInRank.text.toString().toInt())
-                    },
-                    location = Location(viewModel.getLocationId(binding.txtInLocation.text.toString()),binding.txtInLocation.text.toString()),
-                    locationComment = binding.txtInLocationComment.text.toString()
+                originalTitle = binding.txtInOriginalTitle.text.toString(),
+                yearPublished = binding.txtInReleaseYear.text.toString().toInt(),
+                description = binding.txtInDescription.text.toString(),
+                ordered = Calendar.getInstance().also { it.set(binding.dpOrdered.year, binding.dpOrdered.month, binding.dpOrdered.dayOfMonth) }.time ,
+                delivered = Calendar.getInstance().also { it.set(binding.dpReceived.year, binding.dpReceived.month, binding.dpReceived.dayOfMonth) }.time,
+                paidPrice = binding.txtInPaid.text.toString(),
+                suggestedPrice = binding.txtInSuggestedPrice.text.toString(),
+                eanCode = binding.txtInEAN.text.toString().toInt(),
+                bggId = binding.txtInBGGId.text.toString().toInt(),
+                productionCode = binding.txtInProductionCode.text.toString(),
+                currentRank = binding.txtInRank.text.toString().toInt(),
+                type = binding.spinnerType.selectedItemPosition,
+                comment = binding.txtInComment.text.toString(),
+                img = viewModel.img.value,
+                hasImg = viewModel.hasImg.value,
+                artists = Array(viewModel.artistsChosen.value!!.size){
+                                                                     viewModel.artistsChosen.value!![it]
+                },
+                designers = Array(viewModel.designersChosen.value!!.size){
+                                                                     viewModel.designersChosen.value!![it]
+                },
+                ranks = Array(1){
+                                Rank(binding.txtInRank.text.toString().toInt())
+                },
+                location = Location(viewModel.getLocationId(binding.txtInLocation.text.toString()),binding.txtInLocation.text.toString()),
+                locationComment = binding.txtInLocationComment.text.toString()
             ))
         }
 

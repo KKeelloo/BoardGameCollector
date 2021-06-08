@@ -125,3 +125,65 @@ fun putGame(db: SQLiteDatabase, game: GameData): Long{
     }
     return db.insert(GamesCollector.GamesEntry.TABLE_NAME, null, values)
 }
+
+fun putArtist(db: SQLiteDatabase, artist: Person): Long{
+    val values = ContentValues().apply {
+        put(GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID, artist.id)
+        put(GamesCollector.ArtistsEntry.COLUMN_ARTIST_NAME, artist.name)
+    }
+    return db.insert(GamesCollector.ArtistsEntry.TABLE_NAME, null, values)
+}
+
+fun putGameArtist(db: SQLiteDatabase, gameId: Long, artistId: Long): Long{
+    val values = ContentValues().apply {
+        put(GamesCollector.GameArtistsEntry.COLUMN_GAME_ID, gameId)
+        put(GamesCollector.GameArtistsEntry.COLUMN_ARTIST_ID, artistId)
+    }
+    return db.insert(GamesCollector.GameArtistsEntry.TABLE_NAME, null, values)
+}
+
+fun putDesigner(db: SQLiteDatabase, designer: Person): Long{
+    val values = ContentValues().apply {
+        put(GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID, designer.id)
+        put(GamesCollector.DesignersEntry.COLUMN_DESIGNER_NAME, designer.name)
+    }
+    return db.insert(GamesCollector.DesignersEntry.TABLE_NAME, null, values)
+}
+
+fun putGameDesigner(db: SQLiteDatabase, gameId: Long, designerId: Long): Long{
+    val values = ContentValues().apply {
+        put(GamesCollector.GameDesignersEntry.COLUMN_GAME_ID, gameId)
+        put(GamesCollector.GameDesignersEntry.COLUMN_DESIGNER_ID, designerId)
+    }
+    return db.insert(GamesCollector.GameDesignersEntry.TABLE_NAME, null, values)
+}
+
+fun putLocation(db: SQLiteDatabase, location: Location): Long{
+    val values = ContentValues().apply {
+        put(GamesCollector.LocationEntry.COLUMN_LOCATION_ID, location.id)
+        put(GamesCollector.LocationEntry.COLUMN_LOCATION, location.name)
+    }
+    return db.insert(GamesCollector.LocationEntry.TABLE_NAME, null, values)
+}
+
+fun putGameLocation(db: SQLiteDatabase, gameId: Long, locationId: Long, comment: String): Long{
+    db.delete(GamesCollector.GamesLocationsEntry.TABLE_NAME,
+            "${GamesCollector.GamesLocationsEntry.COLUMN_GAME_ID} = ?",
+            arrayOf(gameId.toString()))
+    val values = ContentValues().apply {
+        put(GamesCollector.GamesLocationsEntry.COLUMN_LOCATION_ID, locationId)
+        put(GamesCollector.GamesLocationsEntry.COLUMN_GAME_ID, gameId)
+        put(GamesCollector.GamesLocationsEntry.COLUMN_COMMENT, comment)
+    }
+    return db.insert(GamesCollector.GamesLocationsEntry.TABLE_NAME, null, values)
+}
+
+fun putRank(db: SQLiteDatabase, rank: Rank, gameId: Long): Long{
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val values = ContentValues().apply {
+        put(GamesCollector.RanksEntry.COLUMN_RANK, rank.rank)
+        put(GamesCollector.RanksEntry.COLUMN_GAME_ID, gameId)
+        put(GamesCollector.RanksEntry.COLUMN_DATE, format.format(rank.date))
+    }
+    return db.insert(GamesCollector.RanksEntry.TABLE_NAME, null, values)
+}

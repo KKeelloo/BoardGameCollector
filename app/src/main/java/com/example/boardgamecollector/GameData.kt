@@ -1,11 +1,10 @@
 package com.example.boardgamecollector
 
 import android.graphics.Bitmap
-import java.io.FileDescriptor
 import java.util.*
 
 data class GameData(
-        var gameId: Int? = null,
+        var gameId: Long? = null,
         var title: String? = null,
         var originalTitle: String? = null,
         var yearPublished: Int? = null,
@@ -70,7 +69,7 @@ data class GameData(
     }
 
     override fun hashCode(): Int {
-        var result = gameId ?: 0
+        var result = gameId?.hashCode() ?: 0
         result = 31 * result + (title?.hashCode() ?: 0)
         result = 31 * result + (originalTitle?.hashCode() ?: 0)
         result = 31 * result + (yearPublished ?: 0)

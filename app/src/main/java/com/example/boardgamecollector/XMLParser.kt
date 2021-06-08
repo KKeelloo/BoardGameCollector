@@ -1,7 +1,5 @@
 package com.example.boardgamecollector
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -15,8 +13,6 @@ import org.w3c.dom.Document
 import org.w3c.dom.NodeList
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
-import java.io.InputStream
 import java.net.URL
 import javax.net.ssl.HttpsURLConnection
 import javax.xml.parsers.DocumentBuilderFactory
@@ -190,11 +186,11 @@ class XMLParser(private val dataDir: String): ViewModel(){
                         val type = atr.getNamedItem("type")
                         when(type.textContent){
                             "boardgamedesigner" -> {
-                                it.add(Person(atr.getNamedItem("id").textContent.toInt()
+                                it.add(Person(atr.getNamedItem("id").textContent.toLong()
                                         ,atr.getNamedItem("value").textContent))
                             }
                             "boardgameartist" -> {
-                                arrListArtists.add(Person(atr.getNamedItem("id").textContent.toInt()
+                                arrListArtists.add(Person(atr.getNamedItem("id").textContent.toLong()
                                         ,atr.getNamedItem("value").textContent))
                             }
                         }

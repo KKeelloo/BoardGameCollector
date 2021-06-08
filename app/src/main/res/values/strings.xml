@@ -42,8 +42,14 @@
     <string name="retrying_in">"Retrying in: "</string>
     <string name="choose_game">Choose a game</string>
     <string name="game_id">Game id:</string>
-    <string name="error_occ">Error ocured try again later</string>
-    <string name="title">tytuł</string>
+    <string name="error_occ">Error occurred try again later</string>
+    <string name="title">Title</string>
     <string name="name">name</string>
     <string name="adding">Adding game</string>
+    <string name="launch_bgg_screen">Launch BGG screen</string>
+    <string name="next">Next</string>
+    <string name="prev">Previous</string>
+    <string name="remove">Remove</string>
+    <string name="title_change_artist">Change artist</string>
+    <string name="title_change_designer">Change designer</string>
 </resources>

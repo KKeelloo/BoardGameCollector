@@ -6,13 +6,18 @@ import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.Button
 import android.widget.Spinner
+import androidx.lifecycle.ViewModel
 import com.example.boardgamecollector.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
     companion object{
-        val REQUEST_CODE = 10000
+        const val REQUEST_CODE = 10000
+        private class MainActivityViewModel(private val dbHelper: MyDBHelper): ViewModel(){
+
+        }
     }
     private lateinit var binding: ActivityMainBinding
+    private val viewModel = MainActivityViewModel(MyDBHelper(this))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,6 +41,12 @@ class MainActivity : AppCompatActivity() {
             adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             spinner.adapter = adapter
         }
+
+
+
+        binding.btnLBggAct.setOnClickListener {
+
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -43,8 +54,8 @@ class MainActivity : AppCompatActivity() {
         if((requestCode == REQUEST_CODE) && (resultCode == RESULT_OK)){
             if(data != null){
                 if(data.hasExtra("newGameId")){
-                    val gameId = data.extras?.getInt("newGameId")
-                    if(gameId != -1) {
+                    val gameId = data.extras?.getLong("newGameId")?: (-1).toLong()
+                    if(gameId != (-1).toLong()) {
                         //TODO add new game to table view
                     }
                 }
