@@ -1,11 +1,18 @@
 package com.example.boardgamecollector
 
+import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.BaseColumns
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,9 +21,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.boardgamecollector.databinding.ActivityAddGameBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.lang.Exception
+import java.util.*
+import kotlin.collections.ArrayList
 
 class AddGame : AppCompatActivity() {
     companion object{
+
         private class AddGameViewModel(private val dbHelper: MyDBHelper): ViewModel() {
             private val _artistsAll: MutableLiveData<ArrayList<Person>> by lazy {
                 MutableLiveData<ArrayList<Person>>().also { it.postValue(ArrayList())}
@@ -43,8 +54,13 @@ class AddGame : AppCompatActivity() {
             }
             val locations: LiveData<ArrayList<Location>> get() = _locations
 
+            private val _img: MutableLiveData<Bitmap> = MutableLiveData()
+            val img: LiveData<Bitmap> get() = _img
+
+            private val _hasImg: MutableLiveData<Boolean> = MutableLiveData()
+            val hasImg: LiveData<Boolean> get() = _hasImg
+
             var basicGameData: BasicGameData? = null
-            var gameData: GameData? = null
 
             fun choseArtist(person: Person){
                 if(_artistsChosen.value?.contains(person) == false) {
@@ -63,6 +79,11 @@ class AddGame : AppCompatActivity() {
 
             private val _loading: MutableLiveData<Boolean> = MutableLiveData()
             val loading: LiveData<Boolean> get() = _loading
+
+            private val _saving: MutableLiveData<Int> = MutableLiveData()
+            val saving: LiveData<Int> get() = _saving
+
+            val rowId: MutableLiveData<Long> = MutableLiveData()
 
             private fun loadArtists(){
                 val db = dbHelper.readableDatabase
@@ -116,7 +137,6 @@ class AddGame : AppCompatActivity() {
                         null,
                         null
                 )
-
                 val arr = ArrayList<Person>()
 
                 with(cursor){
@@ -167,12 +187,70 @@ class AddGame : AppCompatActivity() {
             fun clearOnSearch(){
                 _artistsChosen.postValue(ArrayList())
                 _designersChosen.postValue(ArrayList())
+                basicGameData = null
+                _img.postValue(null)
+                _hasImg.postValue(false)
+            }
+
+            fun loadBitmapFromUrl(src: String){
+                viewModelScope.launch(Dispatchers.IO){
+                    val bitmap = getBitmapFromURL(src)
+                    if(bitmap!=null) {
+                        _img.postValue(bitmap)
+                        _hasImg.postValue(true)
+                    }
+                }
+            }
+
+            fun getLocationId(name: String): Int{
+                for(i in 0 until locations.value!!.size){
+                    if(locations.value!![i].name == name){
+                        return locations.value!![i].id
+                    }
+                }
+                return locations.value!!.size
+            }
+
+            fun setBitmap(bitmap: Bitmap){
+                _img.postValue(bitmap)
+                _hasImg.postValue(true)
+            }
+
+            fun addGame(gameData: GameData){
+                viewModelScope.launch(Dispatchers.IO) {
+                    _saving.postValue(1)
+                    try{
+
+                        val db = dbHelper.writableDatabase
+                        rowId.postValue(putGame(db, gameData))
+
+
+
+                        _saving.postValue(0)
+                    }catch (e: Exception){
+                        Log.i("addGame", e.stackTraceToString())
+                        _saving.postValue(-1)
+                    }
+                }
             }
         }
     }
     private lateinit var binding: ActivityAddGameBinding
     private lateinit var viewModel: AddGameViewModel
     private lateinit var xmlParser: XMLParser
+
+
+    private val getContent = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        if (uri != null) {
+            val bitmap = decodeUri(uri, contentResolver)
+            if(bitmap != null)
+                viewModel.setBitmap(bitmap)
+            else
+                Toast.makeText(this, R.string.error_occ, Toast.LENGTH_SHORT).show()
+        }else{
+            Toast.makeText(this, R.string.error_occ, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -245,6 +323,11 @@ class AddGame : AppCompatActivity() {
             }
         }
 
+        viewModel.img.observe(this){
+            if(viewModel.img.value!=null)
+                binding.imgLoadedImage.setImageBitmap(viewModel.img.value)
+        }
+
         binding.btnAddArtist.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle(getString(R.string.title_add_artist))
@@ -253,7 +336,7 @@ class AddGame : AppCompatActivity() {
             val inID: AutoCompleteTextView = inflated.findViewById(R.id.inID)
             val inName: AutoCompleteTextView = inflated.findViewById(R.id.inName)
 
-            val artists: Array<Person> = viewModel.artistsChosen.value!!.toTypedArray()
+            val artists: Array<Person> = viewModel.artistsAll.value!!.toTypedArray()
 
             ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Array(artists.size){
                 artists[it].id
@@ -297,7 +380,7 @@ class AddGame : AppCompatActivity() {
             val inID: AutoCompleteTextView = inflated.findViewById(R.id.inID)
             val inName: AutoCompleteTextView = inflated.findViewById(R.id.inName)
 
-            val designer: Array<Person> = viewModel.designersChosen.value!!.toTypedArray()
+            val designer: Array<Person> = viewModel.designersAll.value!!.toTypedArray()
 
             ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, Array(designer.size){
                 designer[it].id
@@ -396,21 +479,21 @@ class AddGame : AppCompatActivity() {
                 }else{
                     if (xmlParser.loaded.value == 200){
                         loadingDialog.dissmisDialog()
-                        viewModel.gameData = xmlParser.game.value!!
+                        val gameData = xmlParser.game.value!!
                         binding.txtInGameTitle.setText(viewModel.basicGameData!!.name)
-                        binding.txtInOriginalTitle.setText(viewModel.gameData!!.originalTitle)
-                        binding.txtInReleaseYear.setText(viewModel.gameData!!.yearPublished.toString())
-                        for (i in viewModel.gameData!!.artists!!.indices){
-                            viewModel.choseArtist(viewModel.gameData!!.artists!![i])
+                        binding.txtInOriginalTitle.setText(gameData.originalTitle)
+                        binding.txtInReleaseYear.setText(gameData.yearPublished.toString())
+                        for (i in gameData.artists!!.indices){
+                            viewModel.choseArtist(gameData.artists!![i])
                         }
-                        for (i in viewModel.gameData!!.designers!!.indices){
-                            viewModel.choseDesigner(viewModel.gameData!!.designers!![i])
+                        for (i in gameData.designers!!.indices){
+                            viewModel.choseDesigner(gameData.designers!![i])
                         }
-                        binding.txtInDescription.setText(viewModel.gameData!!.description)
-                        binding.txtInBGGId.setText(viewModel.gameData!!.bggId.toString())
-                        binding.txtInRank.setText(viewModel.gameData!!.ranks!![0].rank.toString())
-                        if(viewModel.gameData!!.img!=null) {
-                            binding.imgLoadedImage.setImageBitmap(viewModel.gameData!!.img)
+                        binding.txtInDescription.setText(gameData.description)
+                        binding.txtInBGGId.setText(gameData.bggId.toString())
+                        binding.txtInRank.setText(gameData.ranks!![0].rank.toString())
+                        if(gameData.img!=null) {
+                            viewModel.setBitmap(gameData.img!!)
                         }
                     }
                     else if(xmlParser.loaded.value == -2){
@@ -438,12 +521,74 @@ class AddGame : AppCompatActivity() {
                 loadingDialog.setInfo("${getText(R.string.waiting_for_data)}\n${getText(R.string.retrying_in)} ${value}s")
         }
 
-
         binding.btnSearchBGG.setOnClickListener {
             xmlParser.getGamesByName(binding.txtInGameTitle.text.toString())
             viewModel.clearOnSearch()
             loadingDialog.startLoadingDialog()
             loadingDialog.setInfo("${getText(R.string.loading_data)}")
+        }
+
+        binding.btnLoadImage.setOnClickListener {
+            getContent.launch("image/*")
+        }
+
+        binding.btnLoadImageURL.setOnClickListener {
+            val src = binding.txtInImgUrl.text?.toString()
+            if(src != null)
+                viewModel.loadBitmapFromUrl(src)
+            else
+                Toast.makeText(this, R.string.error_occ, Toast.LENGTH_SHORT).show()
+        }
+
+        binding.btnConfirm.setOnClickListener {
+            viewModel.addGame(GameData(title = binding.txtInGameTitle.text.toString(),
+                    originalTitle = binding.txtInOriginalTitle.text.toString(),
+                    yearPublished = binding.txtInReleaseYear.text.toString().toInt(),
+                    description = binding.txtInDescription.text.toString(),
+                    ordered = Calendar.getInstance().also { it.set(binding.dpOrdered.year, binding.dpOrdered.month, binding.dpOrdered.dayOfMonth) }.time ,
+                    delivered = Calendar.getInstance().also { it.set(binding.dpReceived.year, binding.dpReceived.month, binding.dpReceived.dayOfMonth) }.time,
+                    paidPrice = binding.txtInPaid.text.toString(),
+                    suggestedPrice = binding.txtInSuggestedPrice.text.toString(),
+                    eanCode = binding.txtInEAN.text.toString().toInt(),
+                    bggId = binding.txtInBGGId.text.toString().toInt(),
+                    productionCode = binding.txtInProductionCode.text.toString(),
+                    currentRank = binding.txtInRank.text.toString().toInt(),
+                    type = binding.spinnerType.selectedItemPosition,
+                    comment = binding.txtInComment.text.toString(),
+                    img = viewModel.img.value,
+                    hasImg = viewModel.hasImg.value,
+                    artists = Array(viewModel.artistsChosen.value!!.size){
+                                                                         viewModel.artistsChosen.value!![it]
+                    },
+                    designers = Array(viewModel.designersChosen.value!!.size){
+                                                                         viewModel.designersChosen.value!![it]
+                    },
+                    ranks = Array(1){
+                                    Rank(binding.txtInRank.text.toString().toInt())
+                    },
+                    location = Location(viewModel.getLocationId(binding.txtInLocation.text.toString()),binding.txtInLocation.text.toString()),
+                    locationComment = binding.txtInLocationComment.text.toString()
+            ))
+        }
+
+        viewModel.saving.observe(this){
+            when(it){
+                1 ->{
+                    loadingDialog.startLoadingDialog()
+                    loadingDialog.setInfo(getString(R.string.adding))
+                }
+                0 ->{
+                    loadingDialog.dissmisDialog()
+                    val data = Intent()
+                    data.putExtra("newGameId", viewModel.rowId.value)
+                    setResult(Activity.RESULT_OK, data)
+                    this.finish()
+                }
+                -1 ->{
+                    loadingDialog.dissmisDialog()
+                    Toast.makeText(this, R.string.error_occ, Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 }

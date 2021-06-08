@@ -45,4 +45,5 @@
     <string name="choose_game">Wybierz grę</string>
     <string name="game_id">Id gry:</string>
     <string name="error_occ">Wystąpił błąd spróbuj ponownie później</string>
+    <string name="adding">Adding game</string>
 </resources>

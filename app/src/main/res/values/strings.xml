@@ -45,4 +45,5 @@
     <string name="error_occ">Error ocured try again later</string>
     <string name="title">tytuł</string>
     <string name="name">name</string>
+    <string name="adding">Adding game</string>
 </resources>

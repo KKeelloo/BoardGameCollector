@@ -234,19 +234,8 @@ class XMLParser(private val dataDir: String): ViewModel(){
         }
     }
 
-    private fun  getBitmapFromURL(src: String): Bitmap?{
-        return try {
-            val url =  URL(src)
-            val connection = url.openConnection() as HttpsURLConnection
-            connection.doInput = true
-            connection.connect()
-            val input: InputStream = connection.inputStream
-            Bitmap.createScaledBitmap(BitmapFactory.decodeStream(input),100,100,true)
-        } catch (e: IOException) {
-            Log.i("getBitmap",e.stackTraceToString())
-            null
-        }
-}
+
+
 
     fun findGamesByUsername(username: String){
         viewModelScope.launch(Dispatchers.IO) {

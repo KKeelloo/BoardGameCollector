@@ -23,7 +23,7 @@
             android:id="@+id/inID"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="@string/id" />
+            android:hint="@string/bgg_id" />
     </com.google.android.material.textfield.TextInputLayout>
 
 

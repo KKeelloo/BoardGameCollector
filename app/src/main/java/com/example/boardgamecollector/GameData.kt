@@ -25,7 +25,8 @@ data class GameData(
         var artists: Array<Person>? = null,
         var designers: Array<Person>? = null,
         var ranks: Array<Rank>? = null,
-        var location: Location? = null
+        var location: Location? = null,
+        var locationComment: String? = null
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -63,6 +64,7 @@ data class GameData(
             if (!ranks.contentEquals(other.ranks)) return false
         } else if (other.ranks != null) return false
         if (location != other.location) return false
+        if (locationComment != other.locationComment) return false
 
         return true
     }
@@ -89,6 +91,7 @@ data class GameData(
         result = 31 * result + (designers?.contentHashCode() ?: 0)
         result = 31 * result + (ranks?.contentHashCode() ?: 0)
         result = 31 * result + (location?.hashCode() ?: 0)
+        result = 31 * result + (locationComment?.hashCode() ?: 0)
         return result
     }
 }
