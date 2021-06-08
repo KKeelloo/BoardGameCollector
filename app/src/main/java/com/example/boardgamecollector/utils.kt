@@ -187,3 +187,30 @@ fun putRank(db: SQLiteDatabase, rank: Rank, gameId: Long): Long{
     }
     return db.insert(GamesCollector.RanksEntry.TABLE_NAME, null, values)
 }
+
+fun gameInDB(db: SQLiteDatabase, bggId: Long): Boolean{
+    val cursor = db.query(GamesCollector.GamesEntry.TABLE_NAME, arrayOf(GamesCollector.GamesEntry.GAME_ID), "${GamesCollector.GamesEntry.COLUMN_BGG_ID} = ?", arrayOf(bggId.toString()), null, null, null)
+    val numRows = cursor.count
+    cursor.close()
+    if(numRows == 0)
+        return false
+    return true
+}
+
+fun artistInDB(db: SQLiteDatabase, id: Long): Boolean{
+    val cursor = db.query(GamesCollector.ArtistsEntry.TABLE_NAME, arrayOf(GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID), "${GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID} = ?", arrayOf(id.toString()), null, null, null)
+    val numRows = cursor.count
+    cursor.close()
+    if(numRows == 0)
+        return false
+    return true
+}
+
+fun designerInDB(db: SQLiteDatabase, id: Long): Boolean{
+    val cursor = db.query(GamesCollector.DesignersEntry.TABLE_NAME, arrayOf(GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID), "${GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID} = ?", arrayOf(id.toString()), null, null, null)
+    val numRows = cursor.count
+    cursor.close()
+    if(numRows == 0)
+        return false
+    return true
+}

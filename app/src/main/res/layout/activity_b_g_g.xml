@@ -6,4 +6,25 @@
     android:layout_height="match_parent"
     tools:context=".BGGActivity">
 
+    <Button
+        android:id="@+id/btnImportByUsername"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/import_by_username"
+        app:layout_constraintBottom_toTopOf="@+id/btnRefreshStats"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnRefreshStats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/refresh_stats"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/btnImportByUsername" />
 </androidx.constraintlayout.widget.ConstraintLayout>

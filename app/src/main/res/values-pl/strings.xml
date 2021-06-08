@@ -3,11 +3,12 @@
     <string name="btn_add">Dodaj grę</string>
     <string name="app_name">BoardGameCollector</string>
     <string name="txt_sort">Sortuj po</string>
-    <string name="by_date">dacie wydania</string>
-    <string name="by_name">nazwie</string>
+    <string name="by_date_a">dacie wydania rosnąco</string>
+    <string name="by_name_a">nazwie rosnąco</string>
+    <string name="by_name_d">nazwie malejąco</string>
     <string name="name">nazwa</string>
     <string name="title">tytuł</string>
-    <string name="by_rank">pozycji w rankingu</string>
+    <string name="by_rank_a">pozycji w rankingu rosnąco</string>
     <string name="sort_order">sort order</string>
     <string name="game_name">Tytuł gry</string>
     <string name="btnSearchBGG">Znajdź na BGG</string>
@@ -52,4 +53,10 @@
     <string name="remove">Usuń</string>
     <string name="title_change_artist">Zmień artystę</string>
     <string name="title_change_designer">Zmień projektanta</string>
+    <string name="import_by_username">Zaimportuj gry z BGG</string>
+    <string name="refresh_stats">Odświerz statystyki</string>
+    <string name="username">Nazwa użytkownika</string>
+    <string name="loaded">Załadowano</string>
+    <string name="by_rank_d">pozycji w rankingu malejąco</string>
+    <string name="by_date_d">dacie wydania malejąco</string>
 </resources>

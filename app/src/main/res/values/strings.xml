@@ -1,9 +1,10 @@
 <resources>
     <string name="app_name">BoardGameCollector</string>
     <string name="btn_add">Add game</string>
-    <string name="by_date">release date</string>
-    <string name="by_name">name</string>
-    <string name="by_rank">rank position</string>
+    <string name="by_date_a">release date ascending</string>
+    <string name="by_name_a">name ascending</string>
+    <string name="by_name_d">name descending</string>
+    <string name="by_rank_a">rank position ascending</string>
     <string name="txt_sort">Sort by</string>
     <string name="sort_order">sort order</string>
     <string name="game_name">Game title</string>
@@ -52,4 +53,10 @@
     <string name="remove">Remove</string>
     <string name="title_change_artist">Change artist</string>
     <string name="title_change_designer">Change designer</string>
+    <string name="import_by_username">Import from BGG by username</string>
+    <string name="refresh_stats">Refresh stats</string>
+    <string name="username">Username</string>
+    <string name="loaded">Loaded</string>
+    <string name="by_rank_d">rank position descending</string>
+    <string name="by_date_d">release date descending</string>
 </resources>

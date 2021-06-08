@@ -1,5 +1,6 @@
 package com.example.boardgamecollector
 
+import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -10,6 +11,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.w3c.dom.Document
+import org.w3c.dom.Element
+import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.File
 import java.io.FileOutputStream
@@ -30,8 +33,17 @@ class XMLParser(private val dataDir: String): ViewModel(){
     private val _processingForId: MutableLiveData<Boolean> = MutableLiveData<Boolean>().also { it.value=false }
     val processingForId: LiveData<Boolean> get() = _processingForId
 
+    private val _processingForUsername: MutableLiveData<Boolean> = MutableLiveData<Boolean>().also { it.value=false }
+    val processingForUsername: LiveData<Boolean> get() = _processingForUsername
+
     private val _loaded: MutableLiveData<Int> = MutableLiveData<Int>().also { it.value=-2 }
     val loaded: LiveData<Int> get() = _loaded
+
+    private val _numToLoad: MutableLiveData<Int> = MutableLiveData<Int>().also { it.value = 0 }
+    val numToLoad: LiveData<Int> get() = _numToLoad
+
+    private val _numLoaded: MutableLiveData<Int> = MutableLiveData<Int>().also { it.value = 0 }
+    val numLoaded: LiveData<Int> get() = _numLoaded
 
     private val _gamesBasic: MutableLiveData<Array<BasicGameData>> by lazy {
         MutableLiveData<Array<BasicGameData>>().also { it.postValue(Array(0){BasicGameData("","","")}) }
@@ -233,10 +245,66 @@ class XMLParser(private val dataDir: String): ViewModel(){
 
 
 
-    fun findGamesByUsername(username: String){
+    fun findGamesByUsername(username: String, db: MyDBHelper){
         viewModelScope.launch(Dispatchers.IO) {
-            withContext(viewModelScope.coroutineContext) {
+            val request = "https://www.boardgamegeek.com/xmlapi2/collection?username=$username&own=1"
+            val res = getRequestToXMLFile(request, _processingForUsername)
+            if( res == 200){
+                val file = File("$dataDir/tmp/tmp.xml")
+                val xmlDoc: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
+                xmlDoc.documentElement.normalize()
+                var item: Element? = xmlDoc.getElementsByTagName("message").item(0) as Element?
 
+                if( item == null) {
+                    item = xmlDoc.getElementsByTagName("items").item(0) as Element?
+                    if(item == null) {
+                        _loaded.postValue(-1)
+                        delay(300)
+                        _processingForUsername.postValue(false)
+                        return@launch
+                    }
+
+                    val numIter = xmlDoc.getElementsByTagName("items").item(0).attributes.getNamedItem("totalitems").textContent.toInt()
+                    _numLoaded.postValue(0)
+                    _numToLoad.postValue(numIter)
+                    val items = xmlDoc.getElementsByTagName("item")
+                    file.delete()
+                    for (i in 0 until numIter) {
+                        delay(1500)
+                        val itemAtr = items.item(i).attributes
+                        val id = itemAtr.getNamedItem("objectid").textContent
+                        if(!gameInDB(db.readableDatabase, id.toLong())) {
+                            val game = _getGameByID(id)
+                            if(game!=null){
+                                game.gameId = putGame(db.writableDatabase, game)
+                                game.artists?.iterator()?.forEach { artist ->
+                                    if(!artistInDB(db.readableDatabase, artist.id))
+                                        putArtist(db.writableDatabase, artist)
+                                    putGameArtist(db.writableDatabase, game.gameId!!, artist.id)
+                                }
+                                game.designers?.iterator()?.forEach { designer ->
+                                    if(!designerInDB(db.readableDatabase, designer.id))
+                                        putDesigner(db.writableDatabase, designer)
+                                    putGameDesigner(db.writableDatabase, game.gameId!!, designer.id)
+                                }
+                                putRank(db.writableDatabase, game.ranks?.get(0) ?: Rank(), game.gameId!!)
+                            }
+                        }
+                        _numLoaded.postValue(i+1)
+                    }
+                    _loaded.postValue(200)
+                    delay(300)
+                    _processingForUsername.postValue(false)
+                    _numLoaded.postValue(0)
+                }else if(item.textContent == "Invalid username specified"){
+                    _loaded.postValue(-3)
+                    delay(300)
+                    _processingForUsername.postValue(false)
+                }
+            }else{
+                _loaded.postValue(res)
+                delay(300)
+                _processingForUsername.postValue(false)
             }
         }
     }

@@ -17,12 +17,13 @@ class LoadingDialog(var activity: Activity) {
         info = inflated.findViewById(R.id.tvLoadingInfo)
 
         builder.setView(inflated)
-        builder.setCancelable(true)
+        builder.setCancelable(false)
         dialog = builder.create()
         dialog?.show()
     }
 
     fun dissmisDialog(){
+        dialog?.setCancelable(true)
         dialog?.dismiss()
     }
 

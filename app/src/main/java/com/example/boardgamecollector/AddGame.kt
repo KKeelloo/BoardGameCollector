@@ -581,10 +581,7 @@ class AddGame : AppCompatActivity() {
                         }
                         d.show()
                     }
-                    else if(xmlParser.loaded.value == -2){
-
-                    }
-                    else{
+                    else if(xmlParser.loaded.value != -2){
                         loadingDialog.dissmisDialog()
                         val builder = AlertDialog.Builder(this)
 
@@ -626,10 +623,7 @@ class AddGame : AppCompatActivity() {
                             viewModel.setBitmap(gameData.img!!)
                         }
                     }
-                    else if(xmlParser.loaded.value == -2){
-
-                    }
-                    else{
+                    else if(xmlParser.loaded.value != -2){
                         loadingDialog.dissmisDialog()
                         val builder = AlertDialog.Builder(this)
 

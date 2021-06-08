@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="sort_options" translatable="false">
-        <item>@string/by_name</item>
-        <item>@string/by_rank</item>
-        <item>@string/by_date</item>
+        <item>@string/by_name_a</item>
+        <item>@string/by_name_d</item>
+        <item>@string/by_rank_a</item>
+        <item>@string/by_rank_d</item>
+        <item>@string/by_date_a</item>
+        <item>@string/by_date_d</item>
     </string-array>
     <string-array name="type_options" translatable="false">
         <item>@string/full</item>
