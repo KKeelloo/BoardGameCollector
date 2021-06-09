@@ -667,16 +667,36 @@ class AddGame : AppCompatActivity() {
         binding.btnConfirm.setOnClickListener {
             viewModel.addGame(GameData(title = binding.txtInGameTitle.text.toString(),
                 originalTitle = binding.txtInOriginalTitle.text.toString(),
-                yearPublished = binding.txtInReleaseYear.text.toString().toInt(),
+                yearPublished = binding.txtInReleaseYear.text.toString().let {
+                    try{
+                        return@let it.toInt()
+                    }catch(e: Exception){
+                        0
+                    }} ,
                 description = binding.txtInDescription.text.toString(),
                 ordered = Calendar.getInstance().also { it.set(binding.dpOrdered.year, binding.dpOrdered.month, binding.dpOrdered.dayOfMonth) }.time ,
                 delivered = Calendar.getInstance().also { it.set(binding.dpReceived.year, binding.dpReceived.month, binding.dpReceived.dayOfMonth) }.time,
                 paidPrice = binding.txtInPaid.text.toString(),
                 suggestedPrice = binding.txtInSuggestedPrice.text.toString(),
-                eanCode = binding.txtInEAN.text.toString().toInt(),
-                bggId = binding.txtInBGGId.text.toString().toInt(),
+                eanCode = binding.txtInEAN.text.toString().let {
+                    try{
+                        return@let it.toInt()
+                    }catch(e: Exception){
+                        0
+                    }} ,
+                bggId = binding.txtInBGGId.text.toString().let {
+                    try{
+                        return@let it.toInt()
+                    }catch(e: Exception){
+                        0
+                    }} ,
                 productionCode = binding.txtInProductionCode.text.toString(),
-                currentRank = binding.txtInRank.text.toString().toInt(),
+                currentRank = binding.txtInRank.text.toString().let {
+                    try{
+                        return@let it.toInt()
+                    }catch(e: Exception){
+                        0
+                    }} ,
                 type = binding.spinnerType.selectedItemPosition,
                 comment = binding.txtInComment.text.toString(),
                 img = viewModel.img.value,

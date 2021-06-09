@@ -23,18 +23,17 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/btnLBggAct"
-            app:layout_constraintTop_toBottomOf="@+id/spinnerSort"
-            app:layout_constraintVertical_bias="0.973" />
+            app:layout_constraintTop_toBottomOf="@+id/btnLocations" />
 
         <Spinner
             android:id="@+id/spinnerSort"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:layout_constraintBottom_toTopOf="@+id/btnAddGame"
+            app:layout_constraintBottom_toTopOf="@+id/btnLocations"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/textView"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.6" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textView"
@@ -43,7 +42,6 @@
             android:text="@string/txt_sort"
             app:layout_constraintBottom_toBottomOf="@+id/spinnerSort"
             app:layout_constraintEnd_toStartOf="@+id/spinnerSort"
-            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/spinnerSort" />
 
@@ -58,22 +56,34 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="@+id/btnAddGame" />
 
+        <Button
+            android:id="@+id/btnLocations"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/locations"
+            app:layout_constraintBottom_toTopOf="@+id/btnAddGame"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/spinnerSort" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ScrollView
         android:id="@+id/scrollView2"
-        android:layout_marginTop="124dp"
-        android:layout_marginBottom="64dp"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="158dp"
+        android:layout_marginBottom="64dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" >
+        app:layout_constraintTop_toTopOf="parent">
+
         <TableLayout
             android:id="@+id/table_games"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent"
+            android:stretchColumns="*" />
     </ScrollView>
 
     <Button

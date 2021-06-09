@@ -1,18 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal">
+    android:orientation="horizontal"
+    android:scrollHorizontally="false">
 
     <TextView
-        android:id="@+id/tvId"
+        android:id="@+id/tvRank"
         android:layout_width="60dp"
         android:layout_height="match_parent"
         android:gravity="center"
         app:layout_constraintStart_toStartOf="parent" />
 
     <ImageView
+        android:id="@+id/trImage"
         android:layout_width="124dp"
         android:layout_height="100dp" />
 
@@ -24,17 +27,27 @@
         <TextView
             android:id="@+id/tvTitle"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:breakStrategy="simple"
+            android:scrollHorizontally="false"
+            tools:text="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" />
 
         <TextView
             android:id="@+id/tvReleaseYear"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:scrollHorizontally="false"/>
 
         <TextView
             android:id="@+id/tvDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="3" />
+            android:layout_weight="1"
+            android:breakStrategy="simple"
+            android:isScrollContainer="false"
+            android:maxLines="3"
+            android:scrollHorizontally="false"
+            android:text="000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000" />
     </LinearLayout>
 </LinearLayout>

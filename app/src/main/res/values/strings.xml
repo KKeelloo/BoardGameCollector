@@ -46,7 +46,7 @@
     <string name="error_occ">Error occurred try again later</string>
     <string name="title">Title</string>
     <string name="name">name</string>
-    <string name="adding">Adding game</string>
+    <string name="adding">Processing game</string>
     <string name="launch_bgg_screen">Launch BGG screen</string>
     <string name="next">Next</string>
     <string name="prev">Previous</string>
@@ -59,4 +59,7 @@
     <string name="loaded">Loaded</string>
     <string name="by_rank_d">rank position descending</string>
     <string name="by_date_d">release date descending</string>
+    <string name="refreshing">Refreshing data</string>
+    <string name="locations">Locations</string>
+    <string name="add_location">Add location</string>
 </resources>

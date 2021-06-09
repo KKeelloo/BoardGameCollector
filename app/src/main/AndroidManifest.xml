@@ -13,7 +13,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.BoardGameCollector">
-        <activity android:name=".BGGActivity"></activity>
+        <activity android:name=".GameInfoActivity"></activity>
+        <activity android:name=".LocationsActivity" />
+        <activity android:name=".BGGActivity" />
         <activity android:name=".AddGame" />
         <activity android:name=".MainActivity">
             <intent-filter>

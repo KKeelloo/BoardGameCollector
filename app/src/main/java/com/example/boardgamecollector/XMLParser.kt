@@ -1,6 +1,5 @@
 package com.example.boardgamecollector
 
-import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -9,10 +8,8 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.w3c.dom.Document
 import org.w3c.dom.Element
-import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.File
 import java.io.FileOutputStream
@@ -33,8 +30,8 @@ class XMLParser(private val dataDir: String): ViewModel(){
     private val _processingForId: MutableLiveData<Boolean> = MutableLiveData<Boolean>().also { it.value=false }
     val processingForId: LiveData<Boolean> get() = _processingForId
 
-    private val _processingForUsername: MutableLiveData<Boolean> = MutableLiveData<Boolean>().also { it.value=false }
-    val processingForUsername: LiveData<Boolean> get() = _processingForUsername
+    private val _processingForBGG: MutableLiveData<Boolean> = MutableLiveData<Boolean>().also { it.value=false }
+    val processingForBGG: LiveData<Boolean> get() = _processingForBGG
 
     private val _loaded: MutableLiveData<Int> = MutableLiveData<Int>().also { it.value=-2 }
     val loaded: LiveData<Int> get() = _loaded
@@ -59,6 +56,7 @@ class XMLParser(private val dataDir: String): ViewModel(){
         MutableLiveData<GameData>().also { it.postValue(GameData())}
     }
     val game: LiveData<GameData> get() = _game
+
 
     @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun getRequestToXMLFile(request: String, processing: MutableLiveData<Boolean>): Int{
@@ -242,13 +240,10 @@ class XMLParser(private val dataDir: String): ViewModel(){
         }
     }
 
-
-
-
     fun findGamesByUsername(username: String, db: MyDBHelper){
         viewModelScope.launch(Dispatchers.IO) {
             val request = "https://www.boardgamegeek.com/xmlapi2/collection?username=$username&own=1"
-            val res = getRequestToXMLFile(request, _processingForUsername)
+            val res = getRequestToXMLFile(request, _processingForBGG)
             if( res == 200){
                 val file = File("$dataDir/tmp/tmp.xml")
                 val xmlDoc: Document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file)
@@ -260,7 +255,7 @@ class XMLParser(private val dataDir: String): ViewModel(){
                     if(item == null) {
                         _loaded.postValue(-1)
                         delay(300)
-                        _processingForUsername.postValue(false)
+                        _processingForBGG.postValue(false)
                         return@launch
                     }
 
@@ -294,21 +289,63 @@ class XMLParser(private val dataDir: String): ViewModel(){
                     }
                     _loaded.postValue(200)
                     delay(300)
-                    _processingForUsername.postValue(false)
+                    _processingForBGG.postValue(false)
                     _numLoaded.postValue(0)
                 }else if(item.textContent == "Invalid username specified"){
                     _loaded.postValue(-3)
                     delay(300)
-                    _processingForUsername.postValue(false)
+                    _processingForBGG.postValue(false)
                 }
             }else{
                 _loaded.postValue(res)
                 delay(300)
-                _processingForUsername.postValue(false)
+                _processingForBGG.postValue(false)
             }
         }
     }
 
-
+    fun refreshRanks(db: MyDBHelper){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                _processingForBGG.postValue(true)
+                val projection = arrayOf(GamesCollector.GamesEntry.GAME_ID, GamesCollector.GamesEntry.COLUMN_BGG_ID, GamesCollector.GamesEntry.COLUMN_CURRENT_RANK)
+                val selection = "${GamesCollector.GamesEntry.COLUMN_BGG_ID} != ?"
+                val selectionArgs = arrayOf("0")
+                val cursor = db.readableDatabase.query(
+                    GamesCollector.GamesEntry.TABLE_NAME,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null,
+                    null,
+                    null
+                )
+                val numIter = cursor.count
+                _numLoaded.postValue(0)
+                _numToLoad.postValue(numIter)
+                cursor.moveToNext()
+                for (i in 0 until numIter) {
+                    delay(1500)
+                    val game = _getGameByID(cursor.getInt(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_BGG_ID)).toString())
+                    if(game!=null){
+                        if(game.ranks?.get(0)?.rank ?: 0 != cursor.getInt(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_CURRENT_RANK)))
+                            updateGameRank(db.writableDatabase,cursor.getLong(cursor.getColumnIndex(GamesCollector.GamesEntry.GAME_ID)), game.ranks!!.get(0))
+                    }
+                    _numLoaded.postValue(i+1)
+                    cursor.moveToNext()
+                }
+                cursor.close()
+                _loaded.postValue(200)
+                delay(300)
+                _processingForBGG.postValue(false)
+                _numLoaded.postValue(0)
+            }catch (e: Exception){
+                Log.i("refRanks", e.stackTraceToString())
+                _loaded.postValue(-1)
+                delay(300)
+                _processingForBGG.postValue(false)
+            }
+        }
+    }
 
 }

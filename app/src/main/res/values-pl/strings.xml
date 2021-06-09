@@ -46,7 +46,7 @@
     <string name="choose_game">Wybierz grę</string>
     <string name="game_id">Id gry:</string>
     <string name="error_occ">Wystąpił błąd spróbuj ponownie później</string>
-    <string name="adding">Dodawanie gry</string>
+    <string name="adding">Przetwarzanie gry</string>
     <string name="launch_bgg_screen">Ekran BGG</string>
     <string name="next">Następne</string>
     <string name="prev">Poprzednie</string>
@@ -59,4 +59,7 @@
     <string name="loaded">Załadowano</string>
     <string name="by_rank_d">pozycji w rankingu malejąco</string>
     <string name="by_date_d">dacie wydania malejąco</string>
+    <string name="refreshing">Odświerzanie danych</string>
+    <string name="locations">Lokacje</string>
+    <string name="add_location">Dodaj lokację</string>
 </resources>

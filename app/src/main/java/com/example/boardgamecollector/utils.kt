@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.widget.ListAdapter
 import android.widget.ListView
+import androidx.core.content.contentValuesOf
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -126,6 +127,68 @@ fun putGame(db: SQLiteDatabase, game: GameData): Long{
     return db.insert(GamesCollector.GamesEntry.TABLE_NAME, null, values)
 }
 
+fun updateGameRank(db: SQLiteDatabase, gameId: Long, rank: Rank){
+    putRank(db, rank, gameId)
+    val values = ContentValues().apply {
+        put(GamesCollector.GamesEntry.COLUMN_CURRENT_RANK, rank.rank)
+    }
+    val selection = "${GamesCollector.GamesEntry.GAME_ID} = ?"
+    val selectionArgs = arrayOf(gameId.toString())
+    db.update(
+        GamesCollector.GamesEntry.TABLE_NAME,
+        values,
+        selection,
+        selectionArgs
+    )
+}
+
+fun updateGame(db: SQLiteDatabase, game: GameData){
+    val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val values = ContentValues().apply {
+        put(GamesCollector.GamesEntry.COLUMN_TITLE, game.title)
+        put(GamesCollector.GamesEntry.COLUMN_TITLE_ORIGINAL, game.originalTitle)
+        put(GamesCollector.GamesEntry.COLUMN_RELEASE_YEAR, game.yearPublished)
+        put(GamesCollector.GamesEntry.COLUMN_DESCRIPTION, game.description)
+        put(GamesCollector.GamesEntry.COLUMN_ORDER_DATE, format.format(game.ordered?: Date()))
+        put(GamesCollector.GamesEntry.COLUMN_DELIVERY_DATE, format.format(game.delivered?: Date()))
+        put(GamesCollector.GamesEntry.COLUMN_PAID_PRICE, game.paidPrice)
+        put(GamesCollector.GamesEntry.COLUMN_SUGGESTED_PRICE, game.suggestedPrice)
+        put(GamesCollector.GamesEntry.COLUMN_EAN_CODE, game.eanCode)
+        put(GamesCollector.GamesEntry.COLUMN_BGG_ID, game.bggId)
+        put(GamesCollector.GamesEntry.COLUMN_PRODUCTION_CODE, game.productionCode)
+        put(GamesCollector.GamesEntry.COLUMN_CURRENT_RANK, game.ranks?.get(0)?.rank?:0)
+        put(GamesCollector.GamesEntry.COLUMN_TYPE, game.type)
+        put(GamesCollector.GamesEntry.COLUMN_COMMENT, game.comment)
+        put(GamesCollector.GamesEntry.COLUMN_IMG, game.img.let { bitmap ->
+            val stream = ByteArrayOutputStream()
+            bitmap?.compress(Bitmap.CompressFormat.PNG, 100, stream)?: return@let null
+            val bar = stream.toByteArray()
+            bitmap.recycle()
+            bar
+        })
+        put(GamesCollector.GamesEntry.COLUMN_HAS_IMG, game.hasImg.let {
+            if(it == true)
+                return@let 1
+            else
+                0
+        })
+    }
+    val selection = "${GamesCollector.GamesEntry.GAME_ID} = ?"
+    val selectionArgs = arrayOf(game.gameId.toString())
+    db.update(
+        GamesCollector.GamesEntry.TABLE_NAME,
+        values,
+        selection,
+        selectionArgs
+    )
+}
+
+fun deleteGame(db:SQLiteDatabase, gameId: Long){
+    val selection = "${GamesCollector.GamesEntry.GAME_ID} = ?"
+    val selectionArgs = arrayOf(gameId.toString())
+    db.delete(GamesCollector.GamesEntry.TABLE_NAME, selection, selectionArgs)
+}
+
 fun putArtist(db: SQLiteDatabase, artist: Person): Long{
     val values = ContentValues().apply {
         put(GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID, artist.id)
@@ -164,6 +227,30 @@ fun putLocation(db: SQLiteDatabase, location: Location): Long{
         put(GamesCollector.LocationEntry.COLUMN_LOCATION, location.name)
     }
     return db.insert(GamesCollector.LocationEntry.TABLE_NAME, null, values)
+}
+
+fun newLocation(db: SQLiteDatabase, location: String): Long{
+    val values = ContentValues().apply {
+        put(GamesCollector.LocationEntry.COLUMN_LOCATION, location)
+    }
+    return db.insert(GamesCollector.LocationEntry.TABLE_NAME, null, values)
+}
+
+fun updateLocation(db: SQLiteDatabase, locationId: Long, location: String){
+    db.update(
+        GamesCollector.LocationEntry.TABLE_NAME,
+        ContentValues().apply {
+            put(GamesCollector.LocationEntry.COLUMN_LOCATION, location)
+        },
+        "${GamesCollector.LocationEntry.COLUMN_LOCATION_ID} = ?",
+        arrayOf(locationId.toString())
+    )
+}
+
+fun deleteLocation(db: SQLiteDatabase, locationId: Long){
+    val selection = "${GamesCollector.LocationEntry.COLUMN_LOCATION_ID} = ?"
+    val selectionArgs = arrayOf(locationId.toString())
+    db.delete(GamesCollector.LocationEntry.TABLE_NAME, selection, selectionArgs)
 }
 
 fun putGameLocation(db: SQLiteDatabase, gameId: Long, locationId: Long, comment: String): Long{
