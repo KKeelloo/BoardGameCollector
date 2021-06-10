@@ -1,6 +1,6 @@
 package com.example.boardgamecollector
 
-data class Person(val id: Long, val name: String){
+data class Person(var id: Long, var name: String){
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

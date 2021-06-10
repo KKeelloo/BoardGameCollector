@@ -3,6 +3,7 @@ package com.example.boardgamecollector
 import android.content.DialogInterface
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
@@ -54,9 +55,9 @@ class LocationsActivity : AppCompatActivity() {
                     )
                     val arr = Array<Long>(cursor.count){
                         cursor.moveToNext()
-                        cursor.getLong(cursor.getColumnIndex(GamesCollector.LocationEntry.COLUMN_LOCATION_ID))
+                        cursor.getLong(cursor.getColumnIndex(GamesCollector.GamesLocationsEntry.COLUMN_GAME_ID))
                     }
-
+                    Log.i("[Hmm]", arr.size.toString())
                     _games.postValue(Array<String>(arr.size){
                         cursor.close()
                         cursor = dbHelper.readableDatabase.query(GamesCollector.GamesEntry.TABLE_NAME,
@@ -72,6 +73,24 @@ class LocationsActivity : AppCompatActivity() {
                     })
                     cursor.close()
                 }
+            }
+            fun deleteLocation(location: Long, pos: Int){
+                 val tmp = ArrayList<Location>()
+                _locations.value?.iterator()?.forEach {
+                    tmp.add(it)
+                }
+                tmp.removeAt(pos)
+
+                _locations.postValue(Array<Location>(tmp.size){
+                    tmp[it]
+                })
+                deleteLocation(dbHelper.writableDatabase, location)
+            }
+
+            fun updateLocation(location: Long, txt: String, pos:Int){
+                updateLocation(dbHelper.writableDatabase, location, txt)
+                _locations.value!![pos] = Location(location, txt)
+                _locations.postValue(_locations.value)
             }
         }
     }
@@ -114,20 +133,20 @@ class LocationsActivity : AppCompatActivity() {
 
             txtIn.setText(viewModel.locations.value?.get(pos)?.name)
 
-            ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, it).also { adapter ->
+            ArrayAdapter(this, android.R.layout.simple_list_item_1, it).also { adapter ->
                 lvGames.adapter = adapter
             }
             builder.setView(inflated)
 
             builder.setPositiveButton(android.R.string.ok) { dialogInterface: DialogInterface, _ ->
                 dialogInterface.dismiss()
-                updateLocation(dbHelper.writableDatabase, location, txtIn.text.toString())
+                viewModel.updateLocation(location, txtIn.text.toString(), pos)
             }
 
             if(it.isEmpty())
                 builder.setNegativeButton(R.string.remove) { dialogInterface: DialogInterface, _ ->
                     dialogInterface.cancel()
-                    deleteLocation(dbHelper.writableDatabase, location)
+                    viewModel.deleteLocation(location, pos)
                 }
 
             builder.create().show()

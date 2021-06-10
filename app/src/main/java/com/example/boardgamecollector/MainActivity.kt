@@ -6,6 +6,7 @@ import android.database.Cursor
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.*
@@ -65,7 +66,9 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                             },
                             img = cursor.getBlob(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_IMG)).let{
                                 val op = BitmapFactory.Options()
-                                BitmapFactory.decodeByteArray(it, 0, it.size, op)
+                                if (cursor.getInt(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_HAS_IMG)) == 1)
+                                    return@let BitmapFactory.decodeByteArray(it, 0, it.size, op)
+                                else null
                             },
                             description = cursor.getString(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_DESCRIPTION)),
                             yearPublished = cursor.getInt(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_RELEASE_YEAR)),
@@ -205,7 +208,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 binding.btnPrev.visibility = View.VISIBLE
             }
 
-            if(it == (viewModel.maxPages.value?.minus(1))){
+            if(it >= (viewModel.maxPages.value?.minus(1)?:0)){
                 binding.btnNext.visibility = View.INVISIBLE
             }else{
                 binding.btnNext.visibility = View.VISIBLE
@@ -239,7 +242,11 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                 tr.addView(inflated)
 
                 tr.setOnClickListener {
-
+                    val intent = Intent(this, GameInfoActivity::class.java).apply {
+                        Log.i("XD", gameData.gameId.toString())
+                        putExtra("gameId", gameData.gameId)
+                    }
+                    startForResult.launch(intent)
                 }
 
                 tableGames.addView(tr, TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.MATCH_PARENT))

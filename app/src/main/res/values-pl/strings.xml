@@ -62,4 +62,6 @@
     <string name="refreshing">Odświerzanie danych</string>
     <string name="locations">Lokacje</string>
     <string name="add_location">Dodaj lokację</string>
+    <string name="has_image">Ma zdjęcie</string>
+    <string name="change_location">Change location</string>
 </resources>

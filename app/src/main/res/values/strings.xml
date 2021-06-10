@@ -62,4 +62,6 @@
     <string name="refreshing">Refreshing data</string>
     <string name="locations">Locations</string>
     <string name="add_location">Add location</string>
+    <string name="has_image">Has image</string>
+    <string name="change_location">Change location</string>
 </resources>

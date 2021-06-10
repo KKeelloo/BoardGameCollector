@@ -205,6 +205,17 @@ fun putGameArtist(db: SQLiteDatabase, gameId: Long, artistId: Long): Long{
     return db.insert(GamesCollector.GameArtistsEntry.TABLE_NAME, null, values)
 }
 
+fun changeGameArtists(db: SQLiteDatabase, gameId: Long, artists: Array<Person>){
+    val selection = "${GamesCollector.GameArtistsEntry.COLUMN_GAME_ID} = ?"
+    val selectionArgs = arrayOf(gameId.toString())
+    db.delete(GamesCollector.GameArtistsEntry.TABLE_NAME, selection, selectionArgs)
+    artists.iterator().forEach {
+        if(!artistInDB(db, it.id))
+            putArtist(db, it)
+        putGameArtist(db, gameId, it.id)
+    }
+}
+
 fun putDesigner(db: SQLiteDatabase, designer: Person): Long{
     val values = ContentValues().apply {
         put(GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID, designer.id)
@@ -221,6 +232,16 @@ fun putGameDesigner(db: SQLiteDatabase, gameId: Long, designerId: Long): Long{
     return db.insert(GamesCollector.GameDesignersEntry.TABLE_NAME, null, values)
 }
 
+fun changeGameDesigners(db: SQLiteDatabase, gameId: Long, designers: Array<Person>){
+    val selection = "${GamesCollector.GameDesignersEntry.COLUMN_GAME_ID} = ?"
+    val selectionArgs = arrayOf(gameId.toString())
+    db.delete(GamesCollector.GameDesignersEntry.TABLE_NAME, selection, selectionArgs)
+    designers.iterator().forEach {
+        if(!artistInDB(db, it.id))
+            putDesigner(db, it)
+        putGameDesigner(db, gameId, it.id)
+    }
+}
 fun putLocation(db: SQLiteDatabase, location: Location): Long{
     val values = ContentValues().apply {
         put(GamesCollector.LocationEntry.COLUMN_LOCATION_ID, location.id)

@@ -250,7 +250,7 @@ class AddGame : AppCompatActivity() {
                         val locationsA = locations.value?: ArrayList()
 
                         if(!locationsA.contains(location))
-                            putLocation(db, location)
+                            location.id = newLocation(db, location.name)
 
                         putGameLocation(db, gameId, location.id, gameData.locationComment?:"")
                         putRank(db, gameData.ranks?.get(0)?: Rank(), gameId)
@@ -652,9 +652,6 @@ class AddGame : AppCompatActivity() {
             loadingDialog.setInfo("${getText(R.string.loading_data)}")
         }
 
-        binding.btnLoadImage.setOnClickListener {
-            getContent.launch("image/*")
-        }
 
         binding.btnLoadImageURL.setOnClickListener {
             val src = binding.txtInImgUrl.text?.toString()
