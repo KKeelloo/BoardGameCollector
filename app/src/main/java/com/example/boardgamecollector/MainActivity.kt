@@ -110,7 +110,7 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
                     )
                     _cursor.postValue(cursor)
                     var max = cursor.count/ PER_PAGE
-                    if(cursor.count != max * PER_PAGE)
+                    if(cursor.count > max * PER_PAGE)
                         max++
                     _maxPages.postValue(max)
                     loadPage(cursor)
@@ -209,6 +209,14 @@ class MainActivity : AppCompatActivity(), AdapterView.OnItemSelectedListener {
             }
 
             if(it >= (viewModel.maxPages.value?.minus(1)?:0)){
+                binding.btnNext.visibility = View.INVISIBLE
+            }else{
+                binding.btnNext.visibility = View.VISIBLE
+            }
+        }
+
+        viewModel.maxPages.observe(this){
+            if(viewModel.page.value!! >= (viewModel.maxPages.value?.minus(1)?:0)){
                 binding.btnNext.visibility = View.INVISIBLE
             }else{
                 binding.btnNext.visibility = View.VISIBLE

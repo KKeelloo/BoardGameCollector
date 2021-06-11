@@ -187,6 +187,9 @@ fun deleteGame(db:SQLiteDatabase, gameId: Long){
     val selection = "${GamesCollector.GamesEntry.GAME_ID} = ?"
     val selectionArgs = arrayOf(gameId.toString())
     db.delete(GamesCollector.GamesEntry.TABLE_NAME, selection, selectionArgs)
+    db.delete(GamesCollector.GamesLocationsEntry.TABLE_NAME, "${GamesCollector.GamesLocationsEntry.COLUMN_GAME_ID} = ?", arrayOf(gameId.toString()))
+    db.delete(GamesCollector.GameArtistsEntry.TABLE_NAME, "${GamesCollector.GameArtistsEntry.COLUMN_GAME_ID} = ?", arrayOf(gameId.toString()))
+    db.delete(GamesCollector.GameDesignersEntry.TABLE_NAME, "${GamesCollector.GameDesignersEntry.COLUMN_GAME_ID} = ?", arrayOf(gameId.toString()))
 }
 
 fun putArtist(db: SQLiteDatabase, artist: Person): Long{
@@ -205,7 +208,7 @@ fun putGameArtist(db: SQLiteDatabase, gameId: Long, artistId: Long): Long{
     return db.insert(GamesCollector.GameArtistsEntry.TABLE_NAME, null, values)
 }
 
-fun changeGameArtists(db: SQLiteDatabase, gameId: Long, artists: Array<Person>){
+fun changeGameArtists(db: SQLiteDatabase, gameId: Long, artists: ArrayList<Person>){
     val selection = "${GamesCollector.GameArtistsEntry.COLUMN_GAME_ID} = ?"
     val selectionArgs = arrayOf(gameId.toString())
     db.delete(GamesCollector.GameArtistsEntry.TABLE_NAME, selection, selectionArgs)
@@ -232,12 +235,12 @@ fun putGameDesigner(db: SQLiteDatabase, gameId: Long, designerId: Long): Long{
     return db.insert(GamesCollector.GameDesignersEntry.TABLE_NAME, null, values)
 }
 
-fun changeGameDesigners(db: SQLiteDatabase, gameId: Long, designers: Array<Person>){
+fun changeGameDesigners(db: SQLiteDatabase, gameId: Long, designers: ArrayList<Person>){
     val selection = "${GamesCollector.GameDesignersEntry.COLUMN_GAME_ID} = ?"
     val selectionArgs = arrayOf(gameId.toString())
     db.delete(GamesCollector.GameDesignersEntry.TABLE_NAME, selection, selectionArgs)
     designers.iterator().forEach {
-        if(!artistInDB(db, it.id))
+        if(!designerInDB(db, it.id))
             putDesigner(db, it)
         putGameDesigner(db, gameId, it.id)
     }
@@ -268,7 +271,19 @@ fun updateLocation(db: SQLiteDatabase, locationId: Long, location: String){
     )
 }
 
+fun locationInDB(db: SQLiteDatabase, locationId: Long):Boolean{
+    val cursor = db.query(GamesCollector.LocationEntry.TABLE_NAME, arrayOf(GamesCollector.LocationEntry.COLUMN_LOCATION_ID), "${GamesCollector.LocationEntry.COLUMN_LOCATION_ID} = ?", arrayOf(locationId.toString()), null, null, null)
+    cursor.moveToNext()
+    if(cursor.isAfterLast) {
+        cursor.close()
+        return false
+    }
+    cursor.close()
+    return true
+}
+
 fun deleteLocation(db: SQLiteDatabase, locationId: Long){
+    db.delete(GamesCollector.GamesLocationsEntry.TABLE_NAME, "${GamesCollector.GamesLocationsEntry.COLUMN_LOCATION_ID} = ?", arrayOf(locationId.toString()))
     val selection = "${GamesCollector.LocationEntry.COLUMN_LOCATION_ID} = ?"
     val selectionArgs = arrayOf(locationId.toString())
     db.delete(GamesCollector.LocationEntry.TABLE_NAME, selection, selectionArgs)
@@ -298,27 +313,33 @@ fun putRank(db: SQLiteDatabase, rank: Rank, gameId: Long): Long{
 
 fun gameInDB(db: SQLiteDatabase, bggId: Long): Boolean{
     val cursor = db.query(GamesCollector.GamesEntry.TABLE_NAME, arrayOf(GamesCollector.GamesEntry.GAME_ID), "${GamesCollector.GamesEntry.COLUMN_BGG_ID} = ?", arrayOf(bggId.toString()), null, null, null)
-    val numRows = cursor.count
-    cursor.close()
-    if(numRows == 0)
+    cursor.moveToNext()
+    if(cursor.isAfterLast) {
+        cursor.close()
         return false
+    }
+    cursor.close()
     return true
 }
 
 fun artistInDB(db: SQLiteDatabase, id: Long): Boolean{
     val cursor = db.query(GamesCollector.ArtistsEntry.TABLE_NAME, arrayOf(GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID), "${GamesCollector.ArtistsEntry.COLUMN_ARTIST_ID} = ?", arrayOf(id.toString()), null, null, null)
-    val numRows = cursor.count
-    cursor.close()
-    if(numRows == 0)
+    cursor.moveToNext()
+    if(cursor.isAfterLast) {
+        cursor.close()
         return false
+    }
+    cursor.close()
     return true
 }
 
 fun designerInDB(db: SQLiteDatabase, id: Long): Boolean{
     val cursor = db.query(GamesCollector.DesignersEntry.TABLE_NAME, arrayOf(GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID), "${GamesCollector.DesignersEntry.COLUMN_DESIGNER_ID} = ?", arrayOf(id.toString()), null, null, null)
-    val numRows = cursor.count
-    cursor.close()
-    if(numRows == 0)
+    cursor.moveToNext()
+    if(cursor.isAfterLast) {
+        cursor.close()
         return false
+    }
+    cursor.close()
     return true
 }

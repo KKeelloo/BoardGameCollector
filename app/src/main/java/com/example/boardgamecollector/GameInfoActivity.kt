@@ -315,7 +315,7 @@ class GameInfoActivity : AppCompatActivity() {
                 }
                 cursor.close()
 
-                _artistsChosen.postValue(arrListDes)
+                _designersChosen.postValue(arrListDes)
 
                 cursor = db.query(
                         GamesCollector.GamesLocationsEntry.TABLE_NAME,
@@ -438,9 +438,10 @@ class GameInfoActivity : AppCompatActivity() {
 
                     updateGame(dbHelper.writableDatabase, game)
 
-                    putGameLocation(dbHelper.writableDatabase, game.gameId!! , locationID, locationComment)
-                    changeGameArtists(dbHelper.writableDatabase, game.gameId!!, artistsChosen.value!!.toTypedArray())
-                    changeGameDesigners(dbHelper.writableDatabase, game.gameId!!, designersChosen.value!!.toTypedArray())
+                    if(locationInDB(dbHelper.readableDatabase, locationID))
+                        putGameLocation(dbHelper.writableDatabase, game.gameId!! , locationID, locationComment)
+                    changeGameArtists(dbHelper.writableDatabase, game.gameId!!, artistsChosen.value!!)
+                    changeGameDesigners(dbHelper.writableDatabase, game.gameId!!, designersChosen.value!!)
 
                     _saving.postValue(1)
                 }

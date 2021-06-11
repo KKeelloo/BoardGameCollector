@@ -69,6 +69,7 @@ class LocationsActivity : AppCompatActivity() {
                             null
                         )
                         cursor.moveToNext()
+
                         cursor.getString(cursor.getColumnIndex(GamesCollector.GamesEntry.COLUMN_TITLE_ORIGINAL))
                     })
                     cursor.close()
